@@ -1,560 +1,571 @@
 <!DOCTYPE html>
-<html lang="en-GB">
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>LingPALS — Join us at the linguist’s table</title>
-<meta name="description" content="LingPALS is a peer-led course support programme for Pre-Honours Linguistics and English Language students at Edinburgh. Every Thursday, 4:10–5:00pm.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LingPALS · Join the Linguist’s Table</title>
+<meta name="description" content="LingPALS is a peer-led space for language-curious students. Bring a question, compare notes and make sense of language together — then join a real in-person session." />
+
+<!-- =========================================================
+  LingPALS — Peer-Assisted Learning landing page
+  * 2D pixel-crafted editorial "linguist's table" scene
+  * Interactive Z-fold brochure as the hero object (PDF.js)
+  * Peer notes as real resource-pathway links
+  * Static: plain HTML/CSS/JS, no build, no backend
+========================================================== -->
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=VT323&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
 <style>
-/* ============================================================
-   LingPALS — pixel-crafted table system
-   ============================================================ */
 :root{
-  --px: 4px;
-  --px-small: 2px;
-  --pixel-radius: 0px;
-  --pixel-shadow: 4px 4px 0 rgba(2, 8, 30, .28);
-  --pixel-shadow-lg: 8px 8px 0 rgba(2, 8, 30, .45);
+  /* pixel tokens */
+  --px:4px; --px-small:2px; --pixel-radius:0px;
+  --pixel-shadow:4px 4px 0 rgba(2,8,30,.30);
 
-  --midnight:#050B1F;
-  --ink-800:#08122E;
-  --indigo:#141C4C;
-  --royal:#0B4FD6;
-  --royal-deep:#0A3FAE;
-  --gold:#FFC531;
-  --gold-deep:#E5A400;
-  --violet:#6757B7;
-  --violet-soft:#9C8FE8;
-  --cyan:#3BD6E6;
+  /* table palette */
+  --midnight:#070b22;
+  --indigo:#101643;
+  --indigo-2:#1a2160;
+  --royal:#2b4bd4;
+  --gold:#ffc531;
+  --violet:#6757b7;
+  --soft-violet:#9a8bea;
+  --cyan-ink:#16798a;
+  --cyan-bright:#49d6e6;
+  --paper:#fff9e8;
+  --ink:#10224b;
 
-  --paper-cream:#FFF9E8;
-  --paper-lav:#EEEAFE;
-  --paper-yellow:#FFF0B7;
-  --paper-cyan:#E9FBFC;
-  --paper-peer:#F0E9FF;
-  --ink:#10224B;
-  --ink-violet:#6757B7;
-  --ink-cyan:#16798A;
+  /* note papers */
+  --cream:#fff9e8; --lavender:#eeeafe; --soft-yellow:#fff0b7;
+  --pale-cyan:#e9fbfc; --peer:#f0e9ff; --violet-ink:#6757b7;
 
-  --pixel:'Silkscreen', ui-monospace, 'Cascadia Mono', Consolas, monospace;
-  --edit:'Space Grotesk', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-
-  --ease-paper: cubic-bezier(.62,.04,.30,1);
-  --t-fold: 720ms;
-  --t-turn: 820ms;
-
-  --panel-w: 240px;
-  --panel-h: 360px;
-  --fold-left: 180deg;
-  --fold-right: 180deg;
-  --turn: 0deg;
-  --tilt-x: 0deg;
-  --tilt-y: 0deg;
+  /* brochure panel size (set by JS) */
+  --panel-w:210px; --panel-h:320px;
 }
 
-*,*::before,*::after{box-sizing:border-box}
+*{box-sizing:border-box}
 html{scroll-behavior:smooth}
+html,body{margin:0;padding:0}
 body{
-  margin:0; background:var(--midnight); color:#E8EEFF;
-  font-family:var(--edit); font-size:17px; line-height:1.55;
-  -webkit-font-smoothing:antialiased;
+  font-family:"IBM Plex Mono", ui-monospace, monospace;
+  color:var(--paper);
+  background:
+    radial-gradient(1200px 600px at 50% -10%, rgba(43,75,212,.34), transparent 60%),
+    radial-gradient(900px 500px at 80% 20%, rgba(103,87,183,.28), transparent 60%),
+    radial-gradient(900px 500px at 15% 40%, rgba(22,121,138,.20), transparent 60%),
+    linear-gradient(180deg, var(--midnight), var(--indigo) 55%, #0a0f30);
+  line-height:1.55;
   overflow-x:hidden;
 }
-img,canvas{display:block; max-width:100%}
-a{color:var(--gold)}
-:focus-visible{outline:var(--px) solid var(--gold); outline-offset:var(--px)}
+/* faint pixel graph paper */
+body::before{
+  content:""; position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.6;
+  background-image:
+    repeating-linear-gradient(0deg, rgba(140,160,255,.05) 0 1px, transparent 1px 8px),
+    repeating-linear-gradient(90deg, rgba(140,160,255,.05) 0 1px, transparent 1px 8px);
+}
+img,svg,canvas{image-rendering:pixelated;image-rendering:crisp-edges}
 
-/* ---------- pixel utilities ---------- */
-.dither{
-  background-image:conic-gradient(rgba(255,255,255,.07) 0 25%, transparent 0 50%, rgba(255,255,255,.07) 0 75%, transparent 0);
-  background-size:4px 4px;
+/* ---------- accessibility helpers ---------- */
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.skip-link{
+  position:absolute;left:8px;top:-60px;z-index:100;background:var(--gold);color:var(--ink);
+  font-family:"Silkscreen";padding:12px 16px;border:2px solid var(--ink);box-shadow:var(--pixel-shadow);
+  transition:top .15s ease;
 }
-.notch{ /* stepped 8px corners, no radii anywhere */
-  clip-path:polygon(8px 0,calc(100% - 8px) 0,100% 8px,100% calc(100% - 8px),
-                    calc(100% - 8px) 100%,8px 100%,0 calc(100% - 8px),0 8px);
-}
-.eyebrow{
-  font-family:var(--pixel); font-size:11px; letter-spacing:.14em; text-transform:uppercase;
-  color:var(--cyan);
-}
-.skip{
-  position:absolute; left:8px; top:-64px; z-index:99;
-  background:var(--gold); color:var(--midnight); font-family:var(--pixel);
-  padding:14px 18px; border:var(--px) solid var(--midnight); text-decoration:none;
-  transition:top 120ms linear;
-}
-.skip:focus{top:8px}
+.skip-link:focus{top:8px}
+:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
 
-/* ---------- buttons ---------- */
-.btn{
-  font-family:var(--pixel); font-size:12px; letter-spacing:.08em; text-transform:uppercase;
-  min-height:44px; min-width:44px; padding:12px 20px;
-  background:var(--indigo); color:#EAF0FF; text-decoration:none;
-  border:var(--px) solid #22306B; border-radius:var(--pixel-radius);
-  box-shadow:var(--pixel-shadow); cursor:pointer;
-  display:inline-flex; align-items:center; justify-content:center; gap:8px;
-  transition:transform 120ms steps(2), box-shadow 120ms steps(2), background 120ms linear;
+/* ---------- shared pixel controls ---------- */
+.pixel-btn{
+  font-family:"Silkscreen",monospace;font-size:12px;letter-spacing:.5px;text-transform:uppercase;
+  color:var(--ink);background:var(--gold);border:2px solid var(--ink);border-radius:0;
+  min-height:44px;min-width:44px;padding:11px 15px;cursor:pointer;
+  box-shadow:var(--pixel-shadow);transition:transform .08s steps(2), box-shadow .08s steps(2);
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
 }
-.btn:hover{transform:translate(-2px,-2px); box-shadow:6px 6px 0 rgba(2,8,30,.45); background:#1A2559}
-.btn:active{transform:translate(2px,2px); box-shadow:2px 2px 0 rgba(2,8,30,.5)}
-.btn--gold{background:var(--gold); color:#1A1200; border-color:var(--gold-deep)}
-.btn--gold:hover{background:#FFD45C}
-.btn--ghost{background:transparent; border-color:#2B3A78}
-.btn[aria-disabled="true"]{
-  opacity:.4; cursor:not-allowed; box-shadow:none; transform:none;
-  background:#0D1638; color:#7F8CBE; border-color:#1A2450;
-}
-.btn[aria-pressed="true"]{background:var(--violet); border-color:#5344A0; color:#fff}
-.btn--arrow{width:56px; height:56px; padding:0; font-size:18px}
+.pixel-btn:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 rgba(2,8,30,.32)}
+.pixel-btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 rgba(2,8,30,.32)}
+.pixel-btn:focus-visible{outline:3px solid var(--paper);outline-offset:3px}
+.pixel-btn:disabled{background:#242a55;color:#7b82b5;border-color:#3a4074;box-shadow:2px 2px 0 rgba(0,0,0,.35);cursor:not-allowed;transform:none}
+.pixel-btn.ghost{background:var(--indigo-2);color:var(--paper);border-color:var(--soft-violet)}
+.pixel-btn.tiny{font-size:10px;min-height:36px;padding:8px 10px;box-shadow:3px 3px 0 rgba(2,8,30,.3)}
 
-/* ============================================================
-   HEADER
-   ============================================================ */
-.site-head{
-  position:sticky; top:0; z-index:40;
-  background:rgba(5,11,31,.94);
-  border-bottom:var(--px) solid var(--royal-deep);
+/* ---------- header ---------- */
+.site-header{
+  position:relative;z-index:5;display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;
+  padding:18px clamp(16px,4vw,48px);
+  border-bottom:2px solid rgba(154,139,234,.35);
+  background:linear-gradient(180deg, rgba(7,11,34,.6), transparent);
 }
-.head-in{
-  max-width:1360px; margin:0 auto; padding:12px 20px;
-  display:flex; align-items:center; gap:20px; flex-wrap:wrap;
+.brand{display:flex;align-items:center;gap:12px}
+.brand .mark{
+  width:40px;height:40px;background:var(--gold);border:2px solid var(--ink);
+  display:grid;place-items:center;font-family:"Silkscreen";color:var(--ink);font-size:14px;
+  box-shadow:var(--pixel-shadow);
 }
-.brand{display:flex; align-items:baseline; gap:10px; text-decoration:none}
-.brand b{font-family:var(--edit); font-weight:700; font-size:26px; color:var(--gold); letter-spacing:-.02em}
-.brand span{font-family:var(--pixel); font-size:11px; color:var(--cyan)}
-.site-nav{margin-left:auto}
-.site-nav ul{display:flex; gap:4px; list-style:none; margin:0; padding:0; flex-wrap:wrap}
+.brand b{font-family:"Silkscreen";font-size:18px;letter-spacing:1px}
+.brand span{display:block;font-size:11px;color:var(--soft-violet);letter-spacing:1px}
+.site-nav{display:flex;flex-wrap:wrap;gap:6px}
 .site-nav a{
-  font-family:var(--pixel); font-size:11px; letter-spacing:.06em; text-transform:uppercase;
-  color:#C9D5FF; text-decoration:none; padding:12px 12px; display:block; min-height:44px;
-  display:flex; align-items:center; border:var(--px-small) solid transparent;
+  color:var(--paper);text-decoration:none;font-size:12px;font-family:"Silkscreen";
+  padding:9px 11px;border:2px solid transparent;
 }
-.site-nav a:hover{color:var(--gold); border-color:#22306B; background:#0B1436}
-.site-nav a.is-cta{background:var(--gold); color:#1A1200; border-color:var(--gold-deep)}
+.site-nav a:hover,.site-nav a:focus-visible{border-color:var(--soft-violet);background:rgba(103,87,183,.2)}
 
-/* ============================================================
-   HERO
-   ============================================================ */
-.hero{
-  position:relative; padding:56px 20px 20px;
+/* ---------- layout ---------- */
+main{position:relative;z-index:2}
+.wrap{max-width:1180px;margin:0 auto;padding:0 clamp(16px,4vw,48px)}
+section{padding:clamp(40px,6vw,72px) 0}
+
+/* ---------- hero ---------- */
+.hero{padding-top:clamp(28px,4vw,48px)}
+.overline{font-family:"Silkscreen";font-size:12px;letter-spacing:2px;color:var(--gold);text-transform:uppercase}
+.hero h1{
+  font-family:"Silkscreen";font-weight:700;line-height:1.05;margin:.4em 0 .2em;
+  font-size:clamp(30px,6vw,60px);text-shadow:var(--pixel-shadow);
+}
+.hero h1 .u{position:relative;white-space:nowrap}
+.hero h1 .u::after{content:"";position:absolute;left:0;right:0;bottom:-6px;height:6px;background:var(--gold)}
+.tagline{display:flex;flex-wrap:wrap;gap:8px 18px;margin:14px 0 10px;font-family:"VT323";font-size:clamp(20px,3.4vw,28px);color:var(--cyan-bright)}
+.tagline b{color:var(--paper)}
+.lead{max-width:60ch;color:#dfe3ff;font-size:clamp(15px,2vw,18px)}
+
+/* ---------- the linguist's table scene ---------- */
+.table-outer{
+  margin-top:34px;position:relative;padding:clamp(20px,3vw,40px) clamp(14px,2.4vw,32px);
+  border:var(--px) solid var(--ink);
   background:
-    radial-gradient(120% 90% at 50% -10%, rgba(11,79,214,.30) 0 30%, rgba(11,79,214,.14) 30% 60%, transparent 60%),
-    linear-gradient(180deg,#071031 0%, var(--midnight) 100%);
+    repeating-linear-gradient(0deg, rgba(0,0,0,.12) 0 1px, transparent 1px 12px),
+    repeating-linear-gradient(90deg, rgba(0,0,0,.12) 0 1px, transparent 1px 12px),
+    linear-gradient(160deg, #16204f, #0d1338 60%, #14103a);
+  box-shadow:8px 8px 0 rgba(2,8,30,.45), inset 0 0 0 2px rgba(154,139,234,.35);
+  overflow:hidden;
 }
-.hero::after{ /* 8px pixel graph paper */
-  content:""; position:absolute; inset:0; pointer-events:none; opacity:.3;
-  background-image:
-    repeating-linear-gradient(90deg, rgba(59,214,230,.10) 0 1px, transparent 1px 8px),
-    repeating-linear-gradient(0deg,  rgba(59,214,230,.10) 0 1px, transparent 1px 8px);
-  -webkit-mask-image:radial-gradient(80% 70% at 50% 40%, transparent 0 35%, #000 78%);
-          mask-image:radial-gradient(80% 70% at 50% 40%, transparent 0 35%, #000 78%);
+/* stepped ambient dither corners */
+.table-outer::before,.table-outer::after{
+  content:"";position:absolute;width:200px;height:200px;pointer-events:none;opacity:.5;
+  background:
+    radial-gradient(circle at center, rgba(73,214,230,.30) 0 20%, transparent 22%) ,
+    radial-gradient(circle at center, rgba(103,87,183,.30) 0 40%, transparent 42%);
 }
-.hero-in{max-width:1000px; margin:0 auto; text-align:center; position:relative; z-index:2}
-h1{
-  font-size:clamp(34px,6.4vw,68px); line-height:1.02; margin:14px 0 18px;
-  font-weight:700; letter-spacing:-.03em; color:#FFFFFF;
-  text-shadow:var(--px) var(--px) 0 var(--royal-deep);
-}
-h1 em{font-style:normal; color:var(--gold)}
-.lede{max-width:62ch; margin:0 auto 26px; font-size:clamp(16px,2vw,20px); color:#C6D2F5}
-.hero-cta{display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-bottom:28px}
+.table-outer::before{top:-70px;left:-70px}
+.table-outer::after{bottom:-70px;right:-70px;background:
+    radial-gradient(circle at center, rgba(255,197,49,.22) 0 20%, transparent 22%),
+    radial-gradient(circle at center, rgba(43,75,212,.30) 0 40%, transparent 42%);}
 
-.when{
-  display:inline-flex; flex-wrap:wrap; justify-content:center; align-items:stretch;
-  gap:0; margin:0 auto 8px; border:var(--px) solid var(--gold);
-  background:#0A1franchise; background:#0A1338; box-shadow:var(--pixel-shadow-lg);
+.table-scene{
+  position:relative;display:grid;gap:16px;align-items:start;
+  grid-template-columns:1fr 1fr;
+  grid-template-areas:
+    "stage stage"
+    "n1 n2"
+    "n3 n4"
+    "n5 n6";
 }
-.when div{padding:12px 18px; border-right:var(--px-small) solid rgba(255,197,49,.35)}
-.when div:last-child{border-right:0}
-.when b{display:block; font-family:var(--pixel); font-size:10px; letter-spacing:.12em; color:var(--gold); text-transform:uppercase}
-.when span{font-size:15px; color:#EAF0FF}
-
-/* ============================================================
-   THE TABLE
-   ============================================================ */
-.table-section{position:relative; padding:32px 16px 56px; background:linear-gradient(180deg,var(--midnight),#060E26 40%,var(--midnight))}
-.table-head{max-width:900px; margin:0 auto 22px; text-align:center}
-.table-head h2{font-size:clamp(24px,3.4vw,34px); margin:8px 0 8px; letter-spacing:-.02em}
-.table-head p{color:#A9B7E4; margin:0}
-
-.table{
-  position:relative; max-width:1440px; margin:0 auto;
-  display:grid; grid-template-columns:minmax(190px,1fr) minmax(0,3.1fr) minmax(190px,1fr);
-  grid-template-rows:repeat(3,auto); gap:18px; align-items:center;
-  padding:26px; border:var(--px) solid #1B2A63; background:var(--ink-800);
-  box-shadow:inset 0 0 0 var(--px) #0A1churches; box-shadow:inset 0 0 0 var(--px) #0A1230, var(--pixel-shadow-lg);
-}
-.table::before{ /* dither + syntax-tree connectors */
-  content:""; position:absolute; inset:var(--px); pointer-events:none; opacity:.9;
-  background-image:
-    conic-gradient(rgba(103,87,183,.10) 0 25%, transparent 0 50%, rgba(103,87,183,.10) 0 75%, transparent 0),
-    repeating-linear-gradient(45deg, rgba(59,214,230,.05) 0 2px, transparent 2px 14px);
-  background-size:4px 4px, auto;
-}
-.table::after{ /* peripheral IPA glyph band */
-  content:"ŋ  ə  ʔ  ɫ  ʃ  θ  ɪ  ʒ";
-  position:absolute; left:0; right:0; bottom:6px; text-align:center;
-  font-family:var(--pixel); font-size:13px; letter-spacing:1.2em; color:rgba(59,214,230,.13);
-  pointer-events:none;
+@media(min-width:981px){
+  .table-scene{
+    grid-template-columns:minmax(150px,1fr) minmax(320px,2.6fr) minmax(150px,1fr);
+    grid-template-rows:auto auto auto;
+    grid-template-areas:
+      "n1 stage n4"
+      "n2 stage n5"
+      "n3 stage n6";
+    align-items:center;
+  }
 }
 
-/* ---------- stage ---------- */
-.stage-wrap{grid-area:1 / 2 / 4 / 3; position:relative; z-index:3}
+/* stage cell */
+.stage-wrap{grid-area:stage;display:flex;flex-direction:column;align-items:center;gap:16px}
 .stage{
-  position:relative; height:clamp(340px,56vh,620px);
-  display:flex; align-items:center; justify-content:center;
-  perspective:1500px; perspective-origin:50% 45%;
-  border:var(--px) solid var(--royal); background:#060D24;
-  box-shadow:inset 0 0 0 var(--px) #030816;
-  touch-action:pan-y;
+  position:relative;width:100%;min-height:calc(var(--panel-h) + 90px);
+  perspective:1600px;perspective-origin:50% 44%;
+  display:flex;align-items:center;justify-content:center;overflow:visible;touch-action:pan-y;
 }
-.stage::before{ /* stepped warm spotlight */
-  content:""; position:absolute; inset:0; pointer-events:none;
-  background:repeating-radial-gradient(60% 50% at 50% 58%,
-      rgba(255,197,49,.10) 0 22%, rgba(255,197,49,.055) 22% 38%,
-      rgba(255,197,49,.025) 38% 54%, transparent 54% 100%);
+.inspecting .stage{cursor:grab;touch-action:none}
+.inspecting .stage:active{cursor:grabbing}
+
+/* warm stepped spotlight beneath brochure */
+.spotlight{
+  position:absolute;bottom:14px;left:50%;transform:translateX(-50%);
+  width:calc(var(--panel-w) * 2.6);height:calc(var(--panel-h) * .55);pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse at center bottom,
+    rgba(255,197,49,.36) 0 18%,
+    rgba(255,197,49,.22) 18% 36%,
+    rgba(255,197,49,.12) 36% 54%,
+    rgba(103,87,183,.12) 54% 74%,
+    transparent 74%);
 }
-.stage.is-inspecting{cursor:grab; touch-action:none}
-.stage.is-inspecting:active{cursor:grabbing}
 
-.tilt{transform-style:preserve-3d; transform:rotateX(var(--tilt-x)) rotateY(var(--tilt-y)); transition:transform 220ms var(--ease-paper)}
-.tilt.is-dragging{transition:none}
+/* IPA / symbol ambience */
+.ambient{position:absolute;inset:0;pointer-events:none;z-index:0}
+.ambient span{
+  position:absolute;font-family:"VT323";font-size:26px;color:rgba(154,139,234,.35);
+  text-shadow:2px 2px 0 rgba(0,0,0,.3);
+}
+.ambient .a1{top:6%;left:6%;color:rgba(73,214,230,.35)}
+.ambient .a2{top:12%;right:9%}
+.ambient .a3{bottom:12%;left:12%;color:rgba(255,197,49,.35)}
+.ambient .a4{bottom:8%;right:7%}
+.ambient .a5{top:44%;left:2%}
+.ambient .a6{top:40%;right:2%;color:rgba(73,214,230,.30)}
 
+/* ---------- Z-FOLD BROCHURE ---------- */
+.brochure-tilt{
+  position:relative;width:var(--panel-w);height:var(--panel-h);transform-style:preserve-3d;z-index:2;
+}
+.brochure-tilt.tilt-anim{transition:transform .5s cubic-bezier(.62,.04,.30,1)}
 .brochure{
-  position:relative; width:var(--panel-w); height:var(--panel-h);
-  transform-style:preserve-3d; transform:rotateY(var(--turn));
-  transition:transform var(--t-turn) var(--ease-paper), width var(--t-fold) var(--ease-paper), height var(--t-fold) var(--ease-paper);
+  position:absolute;inset:0;width:var(--panel-w);height:var(--panel-h);
+  transform-style:preserve-3d;transform:rotateY(0deg);
+  transition:transform .9s cubic-bezier(.62,.04,.30,1);
 }
-.panel{
-  position:absolute; top:0; width:var(--panel-w); height:var(--panel-h);
-  transform-style:preserve-3d;
-  transition:transform var(--t-fold) var(--ease-paper), width var(--t-fold) var(--ease-paper), height var(--t-fold) var(--ease-paper);
-}
-.panel--centre{left:0; transform:translateZ(0)}
-.panel--left{left:calc(-1 * var(--panel-w)); transform-origin:100% 50%; transform:rotateY(var(--fold-left)) translateZ(2px)}
-.panel--right{left:var(--panel-w);          transform-origin:0% 50%;  transform:rotateY(var(--fold-right)) translateZ(4px)}
+.hinge-left,.hinge-right{position:absolute;top:0;width:0;height:var(--panel-h);transform-style:preserve-3d;
+  transition:transform .9s cubic-bezier(.62,.04,.30,1);}
+.hinge-left{left:0;transform-origin:left center}
+.hinge-right{right:0;transform-origin:right center}
+.panel{position:absolute;top:0;width:var(--panel-w);height:var(--panel-h);transform-style:preserve-3d}
+.panel-centre{left:0;z-index:2}
+.panel-left{right:0}   /* extends left from left hinge */
+.panel-right{left:0}   /* extends right from right hinge */
 
 .face{
-  position:absolute; inset:0; overflow:hidden;
-  backface-visibility:hidden; -webkit-backface-visibility:hidden;
-  background:#0B1336;
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.10);
+  position:absolute;inset:0;overflow:hidden;backface-visibility:hidden;
+  background:var(--paper);
+  box-shadow:inset 0 0 0 2px rgba(16,34,75,.30), inset -3px -3px 0 rgba(16,34,75,.10);
 }
-.face img{width:100%; height:100%; object-fit:cover; image-rendering:auto}
-.face--back{transform:rotateY(180deg)}
-.face--empty{
-  display:flex; align-items:center; justify-content:center; padding:16px; text-align:center;
-  font-family:var(--pixel); font-size:11px; color:#7F8CBE; line-height:1.8;
+.face.back{transform:rotateY(180deg)}
+.pdf-canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:auto}
+.ph{
+  display:flex;flex-direction:column;gap:8px;align-items:center;justify-content:center;
+  width:100%;height:100%;text-align:center;padding:10px;color:var(--ink);
+  font-family:"Silkscreen";font-size:10px;line-height:1.6;
+  background:linear-gradient(135deg,#fffef7,#f1e9c8);
 }
-.panel--centre .face--front{box-shadow:inset 0 0 0 1px rgba(255,255,255,.14), var(--pixel-shadow-lg)}
+.ph b{font-size:13px}
+.face.loaded .ph{display:none}
 
-/* ---------- controls ---------- */
-.controls{
-  margin-top:18px; display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap;
-}
-.progress{
-  display:flex; flex-direction:column; align-items:center; gap:6px;
-  font-family:var(--pixel); font-size:12px; color:#C9D5FF; min-width:88px;
-}
-.pips{display:flex; gap:6px}
-.pip{width:12px; height:12px; background:#1B2A63; box-shadow:inset 0 0 0 2px #0A1230}
-.pip.is-on{background:var(--gold)}
-.controls-2{
-  margin-top:12px; display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap;
-}
-.bridge{
-  max-width:60ch; margin:20px auto 0; text-align:center; color:#B6C4EE; font-size:16px;
-  border-top:var(--px-small) dashed #22306B; padding-top:16px;
-}
-.sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* closed = only cover; fold wings ~180° behind (with depth) */
+[data-state="0"] .brochure{transform:rotateY(0deg)}
+[data-state="0"] .hinge-left{transform:rotateY(180deg) translateZ(8px)}
+[data-state="0"] .hinge-right{transform:rotateY(-180deg) translateZ(8px)}
+/* exterior spread */
+[data-state="1"] .brochure{transform:rotateY(0deg)}
+[data-state="1"] .hinge-left{transform:rotateY(0deg)}
+[data-state="1"] .hinge-right{transform:rotateY(0deg)}
+/* interior spread — whole brochure turns 180° */
+[data-state="2"] .brochure{transform:rotateY(180deg)}
+[data-state="2"] .hinge-left{transform:rotateY(0deg)}
+[data-state="2"] .hinge-right{transform:rotateY(0deg)}
 
-/* ============================================================
-   PEER NOTES
-   ============================================================ */
-.scraps{display:contents; list-style:none; margin:0; padding:0}
-.scraps > li{position:relative; z-index:2}
-.scraps > li:nth-child(1){grid-area:1 / 1}
-.scraps > li:nth-child(2){grid-area:2 / 1}
-.scraps > li:nth-child(3){grid-area:3 / 1}
-.scraps > li:nth-child(4){grid-area:1 / 3}
-.scraps > li:nth-child(5){grid-area:2 / 3}
-.scraps > li:nth-child(6){grid-area:3 / 3}
-.scraps > li:nth-child(1) .scrap{--rot:-6deg}
-.scraps > li:nth-child(2) .scrap{--rot: 4deg}
-.scraps > li:nth-child(3) .scrap{--rot:-3deg}
-.scraps > li:nth-child(4) .scrap{--rot: 7deg}
-.scraps > li:nth-child(5) .scrap{--rot:-5deg}
-.scraps > li:nth-child(6) .scrap{--rot: 3deg}
+/* ---------- brochure controls ---------- */
+.controls{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
+.nav-arrow{font-size:18px;min-width:56px;min-height:56px;padding:0}
+.controls-secondary{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.progress{display:flex;flex-direction:column;align-items:center;gap:6px}
+.counter{font-family:"Silkscreen";font-size:12px;color:var(--gold);letter-spacing:1px}
+.state-name{font-family:"VT323";font-size:20px;color:var(--paper)}
+.pips{display:flex;gap:8px}
+.pip{
+  width:20px;height:20px;padding:0;border:2px solid var(--paper);background:transparent;
+  cursor:pointer;border-radius:0;box-shadow:2px 2px 0 rgba(0,0,0,.35);
+}
+.pip[data-on="true"]{background:var(--gold);border-color:var(--ink)}
+.pip:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.hint{font-size:12px;color:#b9c0f0;text-align:center;max-width:44ch}
+.dev-preview{margin-top:6px;font-size:11px;color:#9aa2d6;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center}
+.dev-preview label{cursor:pointer;text-decoration:underline;color:var(--soft-violet)}
+.dev-preview input{position:absolute;width:1px;height:1px;opacity:0}
 
-.scrap{
-  position:relative; display:block; text-decoration:none;
-  background:var(--paper, var(--paper-cream)); color:var(--pen, var(--ink));
-  padding:16px 14px 14px; min-height:44px;
-  border:var(--px-small) solid var(--ink);
-  box-shadow:var(--pixel-shadow);
-  transform:rotate(var(--rot,0deg));
-  transition:transform 140ms steps(3), box-shadow 140ms steps(3), filter 140ms linear;
-  filter:saturate(.9) brightness(.96);
-}
-.scrap::before{ /* pixel tape */
-  content:""; position:absolute; top:-10px; left:50%; width:44px; height:16px;
-  transform:translateX(-50%) rotate(calc(var(--rot,0deg) * -1.6));
-  background:rgba(255,197,49,.55); border:var(--px-small) solid rgba(16,34,75,.35);
-}
-.scrap::after{ /* dithered paper texture */
-  content:""; position:absolute; inset:0; pointer-events:none; opacity:.5;
-  background-image:conic-gradient(rgba(16,34,75,.05) 0 25%, transparent 0 50%, rgba(16,34,75,.05) 0 75%, transparent 0);
-  background-size:4px 4px;
-}
-.scrap .sym{
-  font-family:var(--pixel); font-size:15px; letter-spacing:.02em; display:block; margin-bottom:8px;
-  color:var(--pen, var(--ink));
-}
-.scrap .prompt{
-  font-weight:700; font-size:16px; display:inline; line-height:1.9;
-  box-shadow:inset 0 -0.55em 0 var(--marker, rgba(255,197,49,0));
-  transition:box-shadow 160ms steps(3);
-}
-.scrap .desc{
-  display:block; margin-top:8px; font-size:14px; line-height:1.45; color:rgba(16,34,75,.82);
-  max-height:0; overflow:hidden; opacity:0;
-  transition:max-height 200ms var(--ease-paper), opacity 160ms linear, margin 200ms var(--ease-paper);
-}
-.scrap .role{
-  display:block; margin-top:10px; font-family:var(--pixel); font-size:9px;
-  letter-spacing:.1em; text-transform:uppercase; color:rgba(16,34,75,.6);
-}
-.scrap .arrow{
-  position:absolute; right:8px; bottom:6px; font-family:var(--pixel); font-size:13px;
-  color:var(--pen, var(--ink)); opacity:.55;
-}
-.scrap:hover, .scrap:focus-visible{
-  transform:rotate(var(--rot,0deg)) translate(-2px,-4px);
-  box-shadow:var(--pixel-shadow-lg); filter:none;
-}
-.scrap:hover .desc, .scrap:focus-visible .desc{max-height:8em; opacity:1; margin-top:8px}
-.scrap:hover .prompt, .scrap:focus-visible .prompt{--marker:var(--hl, var(--gold))}
-.scrap:hover .arrow, .scrap:focus-visible .arrow{opacity:1}
+/* ---------- peer notes / resource pathways ---------- */
+.note-1{grid-area:n1}.note-2{grid-area:n2}.note-3{grid-area:n3}
+.note-4{grid-area:n4}.note-5{grid-area:n5}.note-6{grid-area:n6}
 
-/* paper stocks */
-.s-phonetics{--paper:var(--paper-cream); --pen:var(--ink);        --hl:var(--gold)}
-.s-syntax   {--paper:var(--paper-cyan);  --pen:var(--ink-cyan);   --hl:#9FE9F2}
-.s-morph    {--paper:var(--paper-yellow);--pen:var(--ink);        --hl:#9FE9F2}
-.s-pronun   {--paper:var(--paper-lav);   --pen:var(--ink-violet); --hl:var(--gold)}
-.s-grammar  {--paper:var(--paper-cream); --pen:var(--ink);        --hl:var(--gold)}
-.s-lingpals {--paper:var(--paper-peer);  --pen:var(--ink);        --hl:var(--gold)}
+.paper-scrap{
+  position:relative;display:block;text-decoration:none;color:var(--ink);
+  background:var(--cream);border:2px solid var(--ink);border-radius:0;
+  padding:16px 14px 14px;box-shadow:var(--pixel-shadow);
+  transition:transform .12s steps(2), box-shadow .12s steps(2);
+  z-index:1;
+}
+.paper-scrap::after{ /* dithered paper texture */
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;
+  background-image:repeating-linear-gradient(45deg, rgba(16,34,75,.05) 0 2px, transparent 2px 4px);
+}
+.scrap-tape{
+  position:absolute;top:-9px;left:50%;transform:translateX(-50%) rotate(-3deg);
+  width:56px;height:16px;background:rgba(255,197,49,.75);border:1px solid rgba(16,34,75,.35);
+}
+.scrap-symbol{display:block;font-family:"Silkscreen";font-size:16px;line-height:1.3;margin-bottom:6px}
+.scrap-prompt{display:inline-block;font-family:"VT323";font-size:22px;color:var(--violet-ink);
+  background:linear-gradient(transparent 60%, rgba(255,197,49,.7) 60%);padding:0 2px}
+.scrap-desc{
+  display:block;margin-top:8px;font-size:12.5px;color:#20345f;
+  overflow:hidden;
+}
+.scrap-arrow{display:block;margin-top:8px;font-family:"Silkscreen";font-size:12px;color:var(--ink)}
+.scrap-arrow::before{content:"↳ open resource"}
 
-/* ============================================================
-   CONTENT SECTIONS
-   ============================================================ */
-.band{padding:64px 20px; border-top:var(--px) solid #12204F}
-.band-in{max-width:1100px; margin:0 auto}
-.band h2{font-size:clamp(26px,3.6vw,40px); letter-spacing:-.025em; margin:10px 0 14px}
-.band h2 em{font-style:normal; color:var(--gold)}
-.band p.intro{color:#B6C4EE; max-width:62ch; margin:0 0 30px}
-.grid3{display:grid; gap:18px; grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+/* note colours */
+.scrap-cyan{background:var(--pale-cyan)}
+.scrap-lavender{background:var(--lavender)}
+.scrap-yellow{background:var(--soft-yellow)}
+.scrap-cream{background:var(--cream)}
+.scrap-peer{background:var(--peer);border-color:var(--violet-ink);box-shadow:4px 4px 0 rgba(103,87,183,.45)}
+.scrap-peer .scrap-symbol{color:var(--violet-ink)}
+
+/* pixel rotations */
+.note-1{transform:rotate(-4deg)}.note-2{transform:rotate(3deg)}.note-3{transform:rotate(-2deg)}
+.note-4{transform:rotate(3deg)}.note-5{transform:rotate(-3deg)}.note-6{transform:rotate(2deg)}
+
+.paper-scrap:hover,.paper-scrap:focus-visible{
+  transform:translate(-2px,-4px);box-shadow:7px 9px 0 rgba(2,8,30,.35);z-index:6;outline:3px solid var(--gold);outline-offset:2px;
+}
+
+/* On desktop: descriptions expand on hover/focus; on small screens always visible */
+@media(min-width:981px){
+  .scrap-desc{max-height:0;opacity:0;margin-top:0;transition:max-height .18s ease,opacity .18s ease,margin-top .18s ease}
+  .paper-scrap:hover .scrap-desc,.paper-scrap:focus-visible .scrap-desc{max-height:140px;opacity:1;margin-top:8px}
+  .paper-scrap:hover .scrap-prompt,.paper-scrap:focus-visible .scrap-prompt{color:var(--cyan-ink)}
+}
+
+/* ---------- content sections ---------- */
+.section-label{font-family:"Silkscreen";font-size:12px;color:var(--gold);letter-spacing:2px;text-transform:uppercase}
+h2.big{font-family:"Silkscreen";font-size:clamp(22px,4vw,34px);margin:.3em 0 .4em;line-height:1.15}
+.grid-cards{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));margin-top:22px}
 .card{
-  background:var(--indigo); border:var(--px) solid #22306B; padding:22px;
-  box-shadow:var(--pixel-shadow);
+  background:linear-gradient(160deg,#141b4c,#0f1440);border:2px solid var(--soft-violet);
+  box-shadow:var(--pixel-shadow);padding:20px;
 }
-.card h3{margin:0 0 8px; font-size:20px; color:#fff}
-.card p{margin:0; color:#B6C4EE; font-size:16px}
-.card .tag{font-family:var(--pixel); font-size:10px; letter-spacing:.12em; color:var(--cyan); text-transform:uppercase; display:block; margin-bottom:10px}
-.checks</nav>
+.card h3{font-family:"Silkscreen";font-size:14px;margin:0 0 10px;color:var(--gold)}
+.card ul{margin:0;padding-left:18px}
+.card li{margin:6px 0;color:#dbe0ff}
+.card p{margin:0;color:#dbe0ff}
+
+.steps{counter-reset:step;display:grid;gap:14px;margin-top:22px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.step{position:relative;border:2px solid var(--ink);background:var(--paper);color:var(--ink);padding:18px 16px 16px;box-shadow:var(--pixel-shadow)}
+.step::before{counter-increment:step;content:"0" counter(step);position:absolute;top:-14px;left:14px;
+  font-family:"Silkscreen";font-size:14px;background:var(--gold);color:var(--ink);border:2px solid var(--ink);padding:4px 8px}
+.step h3{font-family:"Silkscreen";font-size:13px;margin:6px 0 8px}
+.step p{margin:0;font-size:13.5px}
+
+.cta-band{
+  margin-top:16px;border:var(--px) solid var(--gold);background:linear-gradient(160deg,#171f57,#120e3a);
+  padding:clamp(24px,4vw,40px);box-shadow:8px 8px 0 rgba(2,8,30,.45);text-align:center;
+}
+.cta-band h2{font-family:"Silkscreen";font-size:clamp(20px,3.4vw,30px);margin:0 0 10px}
+.cta-band p{color:#dfe3ff;max-width:52ch;margin:0 auto 18px}
+.cta-actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+.reassure{margin-top:14px;font-family:"VT323";font-size:22px;color:var(--cyan-bright)}
+
+/* ---------- footer ---------- */
+.site-footer{
+  position:relative;z-index:2;margin-top:20px;border-top:2px solid rgba(154,139,234,.35);
+  padding:34px clamp(16px,4vw,48px);background:linear-gradient(180deg,transparent,rgba(7,11,34,.6));
+  display:grid;gap:14px;
+}
+.site-footer p{margin:0;color:#c3c9f2;font-size:13px;max-width:70ch}
+.foot-links{display:flex;flex-wrap:wrap;gap:8px}
+.foot-links a{color:var(--paper);text-decoration:none;font-size:12px;font-family:"Silkscreen";padding:8px 10px;border:2px solid transparent}
+.foot-links a:hover,.foot-links a:focus-visible{border-color:var(--soft-violet);background:rgba(103,87,183,.2)}
+.foot-note{font-size:11px;color:#8f96cf}
+
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  .brochure,.hinge-left,.hinge-right,.brochure-tilt,.paper-scrap,.pixel-btn,.scrap-desc{transition:none!important}
+}
+</style>
+</head>
+<body>
+
+<a class="skip-link" href="#brochure-stage">Skip to the interactive brochure</a>
+
+<header class="site-header">
+  <div class="brand">
+    <div class="mark" aria-hidden="true">L</div>
+    <div>
+      <b>LingPALS</b>
+      <span>Peer-Assisted Learning · Linguistics &amp; English Language</span>
+    </div>
   </div>
+  <nav class="site-nav" aria-label="Primary">
+    <a href="#about">About</a>
+    <a href="#brochure-stage">Leaflet</a>
+    <a href="#why">Why join</a>
+    <a href="#session">Sessions</a>
+    <a href="#resources">Resources</a>
+    <a href="#join">Join</a>
+  </nav>
 </header>
 
-<main id="top">
+<main id="main">
 
-  <!-- ================= HERO ================= -->
-  <section class="hero" aria-labelledby="hero-h">
-    <div class="hero-in">
-      <p class="eyebrow">Edinburgh University Students’ Association · Course support for Pre-Honours LEL</p>
-      <h1 id="hero-h">Join us at the <em>linguist’s table</em>.</h1>
-      <p class="lede">
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <div class="wrap">
+      <p class="overline">Join the linguist’s table</p>
+      <h1>Join us at the <span class="u">linguist’s&nbsp;table.</span></h1>
+      <p class="tagline">
+        <b>Bring a question.</b> <b>Compare notes.</b> <b>Make sense of language together.</b>
+      </p>
+      <p class="lead">
         LingPALS is a peer-led space for language-curious students. Bring a question,
-        compare notes, practise tricky ideas and explore how sounds, words and sentences
-        work with others. Led entirely by trained student volunteers in LEL.
+        compare notes, practise tricky ideas and explore how sounds, words and
+        sentences work with others. Start where you are.
       </p>
 
-      <div class="when notch">
-        <div><b>Every</b><span>Thursday, 4:10 – 5:00pm</span></div>
-        <div><b>Where</b><span>Teaching Room 13, Medical School, Teviot Pl EH8 9AG · Doorway 3</span></div>
-        <div><b>First session</b><span>24 September — Meet the team &amp; Q&amp;A</span></div>
-      </div>
+      <!-- ===== THE LINGUIST'S TABLE ===== -->
+      <div class="table-outer">
+        <section class="table-scene" data-state="0" aria-label="The shared linguist’s table">
+          <h2 class="sr-only">Peer notes and Linguistics resource pathways</h2>
 
-      <div class="hero-cta">
-        <a class="btn btn--gold" href="#brochure-stage">Open the leaflet</a>
-        <a class="btn btn--ghost" href="#session">What happens in a session</a>
-      </div>
-    </div>
-  </section>
-
-  <!-- ================= THE TABLE ================= -->
-  <section class="table-section" id="table" aria-labelledby="table-h">
-    <div class="table-head">
-      <p class="eyebrow">Pull up a chair</p>
-      <h2 id="table-h">The shared linguist’s table</h2>
-      <p>The leaflet is in the middle. The notes around it were left by other students. Take one.</p>
-    </div>
-
-    <div class="table dither">
-
-      <!-- ---- STAGE ---- -->
-      <div class="stage-wrap">
-        <div class="stage" id="brochure-stage" tabindex="-1">
-          <div class="tilt" id="tilt">
-            <div class="brochure" id="brochure" role="img" aria-label="LingPALS Z-fold leaflet, cover. Step 1 of 3.">
-              <div class="panel panel--centre" id="p-centre">
-                <div class="face face--front" data-face="centre-front"><div class="face--empty">Loading leaflet…</div></div>
-                <div class="face face--back"  data-face="centre-back"></div>
+          <!-- centre stage: brochure + controls -->
+          <div class="stage-wrap">
+            <div class="stage" id="brochure-stage" tabindex="0" role="group"
+                 aria-label="Interactive Z-fold brochure. Use the previous and next buttons or arrow keys.">
+              <div class="spotlight" aria-hidden="true"></div>
+              <div class="ambient" aria-hidden="true">
+                <span class="a1">/ŋ/</span><span class="a2">ʃ</span><span class="a3">ə</span>
+                <span class="a4">θ</span><span class="a5">NP</span><span class="a6">VP</span>
               </div>
-              <div class="panel panel--left" id="p-left">
-                <div class="face face--front" data-face="left-front"></div>
-                <div class="face face--back"  data-face="left-back"></div>
-              </div>
-              <div class="panel panel--right" id="p-right">
-                <div class="face face--front" data-face="right-front"></div>
-                <div class="face face--back"  data-face="right-back"></div>
+
+              <div class="brochure-tilt" id="tilt">
+                <div class="brochure" id="brochure">
+                  <!-- LEFT wing -->
+                  <div class="hinge-left">
+                    <div class="panel panel-left">
+                      <div class="face front" id="leftFront"><div class="ph"><b>Left panel</b>outside · p1 · third 0</div></div>
+                      <div class="face back"  id="leftBack"><div class="ph"><b>Left panel</b>inside · p2 · third 2</div></div>
+                    </div>
+                  </div>
+                  <!-- CENTRE (cover / pivot) -->
+                  <div class="panel panel-centre">
+                    <div class="face front" id="centreFront"><div class="ph"><b>LingPALS</b>cover · p1 · third 2</div></div>
+                    <div class="face back"  id="centreBack"><div class="ph"><b>Centre panel</b>inside · p2 · third 1</div></div>
+                  </div>
+                  <!-- RIGHT wing -->
+                  <div class="hinge-right">
+                    <div class="panel panel-right">
+                      <div class="face front" id="rightFront"><div class="ph"><b>Right panel</b>outside · p1 · third 1</div></div>
+                      <div class="face back"  id="rightBack"><div class="ph"><b>Right panel</b>inside · p2 · third 0</div></div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
+
+            <!-- primary brochure navigation -->
+            <div class="controls">
+              <button class="pixel-btn nav-arrow" id="prevBtn" type="button" aria-label="Previous brochure state">◀</button>
+
+              <div class="progress">
+                <span class="counter" id="counter">01 / 03</span>
+                <span class="state-name" id="stateName">Cover</span>
+                <div class="pips" role="group" aria-label="Brochure step">
+                  <button class="pip" type="button" data-step="0" data-on="true"  aria-label="Go to cover, step 1 of 3"></button>
+                  <button class="pip" type="button" data-step="1" data-on="false" aria-label="Go to exterior spread, step 2 of 3"></button>
+                  <button class="pip" type="button" data-step="2" data-on="false" aria-label="Go to interior spread, step 3 of 3"></button>
+                </div>
+              </div>
+
+              <button class="pixel-btn nav-arrow" id="nextBtn" type="button" aria-label="Next brochure state">▶</button>
+            </div>
+
+            <!-- secondary controls -->
+            <div class="controls-secondary">
+              <button class="pixel-btn ghost tiny" id="restartBtn" type="button">Restart</button>
+              <button class="pixel-btn ghost tiny" id="inspectBtn" type="button" aria-pressed="false">Inspect in 3D</button>
+              <button class="pixel-btn ghost tiny" id="resetAngleBtn" type="button">Reset angle</button>
+            </div>
+
+            <p class="hint" id="live" aria-live="polite">Brochure cover. Step 1 of 3.</p>
+            <p class="hint">Open the leaflet with ◀ ▶ or arrow keys: Cover → Exterior → Interior.</p>
+
+            <p class="dev-preview">
+              Developer preview:
+              <label for="pdfInput">preview another PDF</label>
+              <input id="pdfInput" type="file" accept="application/pdf" />
+            </p>
           </div>
-        </div>
 
-        <nav class="controls" aria-label="Leaflet navigation">
-          <button class="btn btn--arrow" id="prev" type="button" aria-label="Previous leaflet step">◀</button>
-          <p class="progress" aria-hidden="true">
-            <span id="counter">01 / 03</span>
-            <span class="pips"><i class="pip is-on"></i><i class="pip"></i><i class="pip"></i></span>
-          </p>
-          <button class="btn btn--arrow" id="next" type="button" aria-label="Next leaflet step">▶</button>
-        </nav>
+          <!-- ===== PEER NOTES = RESOURCE PATHWAYS (real links) ===== -->
+          <!-- Replace href="#" with the destination URL before publishing. -->
+          <a class="paper-scrap scrap-cyan note-1" href="#">
+            <span class="scrap-tape" aria-hidden="true"></span>
+            <span class="scrap-symbol">/ŋ/ · Phonetics</span>
+            <span class="scrap-prompt">Try it aloud?</span>
+            <span class="scrap-desc">Can you find it in a word you know? Explore IPA &amp; speech-sound resources.</span>
+            <span class="scrap-arrow" aria-hidden="true"></span>
+          </a>
 
-        <div class="controls-2">
-          <button class="btn" id="restart" type="button">Restart</button>
-          <button class="btn rm-hide" id="inspect" type="button" aria-pressed="false">Inspect in 3D</button>
-          <button class="btn rm-hide" id="resetAngle" type="button" aria-disabled="true">Reset angle</button>
-        </div>
+          <a class="paper-scrap scrap-lavender note-2" href="#">
+            <span class="scrap-tape" aria-hidden="true"></span>
+            <span class="scrap-symbol">NP → Det N · Syntax</span>
+            <span class="scrap-prompt">Build another?</span>
+            <span class="scrap-desc">Compare your phrase with a peer. Phrase-structure resources.</span>
+            <span class="scrap-arrow" aria-hidden="true"></span>
+          </a>
 
-        <p class="sr" id="live" role="status" aria-live="polite">Brochure cover. Step 1 of 3.</p>
+          <a class="paper-scrap scrap-yellow note-3" href="#">
+            <span class="scrap-tape" aria-hidden="true"></span>
+            <span class="scrap-symbol">re-play-ed · Morphology</span>
+            <span class="scrap-prompt">What changed?</span>
+            <span class="scrap-desc">Prefix · root · ending. Word-formation resources.</span>
+            <span class="scrap-arrow" aria-hidden="true"></span>
+          </a>
 
-        <p class="bridge">
-          This table is a starting point. Open the leaflet for practical details,
-          explore a resource, then bring your questions and examples to a LingPALS session.
-        </p>
+          <a class="paper-scrap scrap-cream note-4" href="#">
+            <span class="scrap-tape" aria-hidden="true"></span>
+            <span class="scrap-symbol">ʔ ə ˈnaɪs · Pronunciation</span>
+            <span class="scrap-prompt">Listen + repeat.</span>
+            <span class="scrap-desc">What do you notice? Pronunciation practice resources.</span>
+            <span class="scrap-arrow" aria-hidden="true"></span>
+          </a>
+
+          <a class="paper-scrap scrap-cyan note-5" href="#">
+            <span class="scrap-tape" aria-hidden="true"></span>
+            <span class="scrap-symbol">S → NP VP · Grammar</span>
+            <span class="scrap-prompt">Compare your tree.</span>
+            <span class="scrap-desc">Where did it branch? Parse-tree resources.</span>
+            <span class="scrap-arrow" aria-hidden="true"></span>
+          </a>
+
+          <a class="paper-scrap scrap-peer note-6" href="#">
+            <span class="scrap-tape" aria-hidden="true"></span>
+            <span class="scrap-symbol">LANG · LingPALS</span>
+            <span class="scrap-prompt">Join us here.</span>
+            <span class="scrap-desc">Bring one question to the next session. Peer-learning &amp; programme support.</span>
+            <span class="scrap-arrow" aria-hidden="true"></span>
+          </a>
+        </section>
       </div>
 
-      <!-- ---- PEER NOTES ---- -->
-      <ul class="scraps" role="list" id="resources" aria-label="Peer notes and Linguistics resource pathways">
-        <li>
-          <!-- TODO: replace # with your IPA / speech-sounds resource URL -->
-          <a class="scrap s-phonetics notch" href="#">
-            <span class="sym">/ŋ/</span>
-            <span class="prompt">Try it aloud?</span>
-            <span class="desc">Can you find it in a word you know?</span>
-            <span class="role">Phonetics · IPA &amp; speech sounds</span>
-            <span class="arrow" aria-hidden="true">→</span>
-          </a>
-        </li>
-        <li>
-          <!-- TODO: replace # with your phrase-structure resource URL -->
-          <a class="scrap s-syntax notch" href="#">
-            <span class="sym">NP → Det N</span>
-            <span class="prompt">Build another?</span>
-            <span class="desc">Compare your phrase with a peer.</span>
-            <span class="role">Syntax · Phrase structure</span>
-            <span class="arrow" aria-hidden="true">→</span>
-          </a>
-        </li>
-        <li>
-          <!-- TODO: replace # with your word-formation resource URL -->
-          <a class="scrap s-morph notch" href="#">
-            <span class="sym">re-play-ed</span>
-            <span class="prompt">What changed?</span>
-            <span class="desc">Prefix · root · ending.</span>
-            <span class="role">Morphology · Word formation</span>
-            <span class="arrow" aria-hidden="true">→</span>
-          </a>
-        </li>
-        <li>
-          <!-- TODO: replace # with your pronunciation-practice resource URL -->
-          <a class="scrap s-pronun notch" href="#">
-            <span class="sym">ʔ ə ˈnaɪs</span>
-            <span class="prompt">Listen + repeat.</span>
-            <span class="desc">What do you notice?</span>
-            <span class="role">Pronunciation · Practice</span>
-            <span class="arrow" aria-hidden="true">→</span>
-          </a>
-        </li>
-        <li>
-          <!-- TODO: replace # with your parse-tree resource URL -->
-          <a class="scrap s-grammar notch" href="#">
-            <span class="sym">S → NP VP</span>
-            <span class="prompt">Compare your tree.</span>
-            <span class="desc">Where did it branch?</span>
-            <span class="role">Grammar · Parse trees</span>
-            <span class="arrow" aria-hidden="true">→</span>
-          </a>
-        </li>
-        <li>
-          <!-- TODO: replace # with the LingPALS LEARN page / Padlet discussion board URL -->
-          <a class="scrap s-lingpals notch" href="#">
-            <span class="sym">LANG</span>
-            <span class="prompt">Join us here.</span>
-            <span class="desc">Bring one question to the next session.</span>
-            <span class="role">LingPALS · Peer learning</span>
-            <span class="arrow" aria-hidden="true">→</span>
-          </a>
-        </li>
-      </ul>
-    </div>
-  </section>
-
-  <!-- ================= A SESSION ================= -->
-  <section class="band" id="session" aria-labelledby="session-h">
-    <div class="band-in">
-      <p class="eyebrow">What happens</p>
-      <h2 id="session-h">An hour at the table, <em>every Thursday</em></h2>
-      <p class="intro">
-        Each week, student leaders facilitate a peer support session based on what is coming up
-        in your course. It runs alongside your lectures, tutorials and independent study —
-        a place to talk ideas through with people learning the same things.
+      <p class="hint" style="max-width:70ch;margin-top:16px">
+        This table is a starting point. Open the leaflet for practical details,
+        explore a resource, then bring your questions and examples to a LingPALS session.
       </p>
-      <div class="grid3">
-        <div class="card notch">
-          <span class="tag">01 · Arrive</span>
-          <h3>Bring a question</h3>
-          <p>Anything from a lecture slide to a transcription that would not behave. Start where you are.</p>
-        </div>
-        <div class="card notch">
-          <span class="tag">02 · Together</span>
-          <h3>Compare notes</h3>
-          <p>Hear how other students approached the same example, and say how you approached it.</p>
-        </div>
-        <div class="card notch">
-          <span class="tag">03 · Try it</span>
-          <h3>Make sense of language together</h3>
-          <p>Say sounds out loud, draw a tree, break a word into pieces, and try it together.</p>
-        </div>
-      </div>
-      <blockquote class="quote notch">
-        “You do not need to prepare anything to attend.”
-        <span>From the LingPALS leaflet</span>
-      </blockquote>
     </div>
   </section>
 
-  <!-- ================= WHY JOIN ================= -->
-  <section class="band" id="why" aria-labelledby="why-h">
-    <div class="band-in">
-      <p class="eyebrow">Why join</p>
-      <h2 id="why-h">Excited or nervous about LEL courses? <em>We’ve been there.</em></h2>
-      <div class="grid3">
-        <div>
-          <ul class="checks">
+  <!-- ============ WHAT IS LINGPALS ============ -->
+  <section id="about">
+    <div class="wrap">
+      <p class="section-label">What is LingPALS?</p>
+      <h2 class="big">A welcoming, peer-assisted place to explore language together.</h2>
+      <p class="lead">
+        LingPALS brings students together to explore Linguistics and English Language
+        side by side. It is a low-pressure space to ask questions, compare approaches
+        and practise ideas — a complement to your lectures, tutorials and independent study.
+      </p>
+      <div class="grid-cards">
+        <div class="card">
+          <h3>What LingPALS offers</h3>
+          <ul>
             <li>Explore language alongside other students.</li>
             <li>Compare approaches to lecture content.</li>
             <li>Practise examples aloud.</li>
@@ -562,352 +573,320 @@ h1 em{font-style:normal; color:var(--gold)}
             <li>Share study strategies.</li>
           </ul>
         </div>
-        <div>
-          <ul class="checks">
-            <li>Bring questions into a low-pressure peer space.</li>
-            <li>Hear how other students approach the same topic.</li>
-            <li>Build confidence by explaining and trying ideas together.</li>
-            <li>Find community around Linguistics learning.</li>
-            <li>Make new friends and get tips from peers.</li>
-          </ul>
+        <div class="card">
+          <h3>The character of the table</h3>
+          <p>Peer-led, active and collaborative. You do not need perfect preparation
+             or all the answers — just curiosity and a question to compare. Start where you are.</p>
         </div>
-        <div class="card notch">
-          <span class="tag">Online + in person</span>
-          <h3>Notes here, conversation there</h3>
-          <p>Online notes and resources can help you get started. LingPALS sessions are where ideas become conversation.</p>
-          <p style="margin-top:14px">You have a say in the sessions — suggest a topic or post a question on our Padlet discussion board on LEARN.</p>
+        <div class="card">
+          <h3>Alongside your teaching</h3>
+          <p>LingPALS works with your degree, never instead of it. Online notes help
+             you get started; the sessions are where ideas become conversation.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ================= WHO IT'S FOR ================= -->
-  <section class="band" id="courses" aria-labelledby="courses-h">
-    <div class="band-in">
-      <p class="eyebrow">Who it’s for</p>
-      <h2 id="courses-h">You’re probably <em>already on the list</em></h2>
-      <p class="intro">If you are taking any one of the courses below, you are already on the LingPALS mailing list.</p>
-      <ul class="courses">
-        <li><b>Linguistics and English Language 1A</b></li>
-        <li><b>LEL2A</b> — Linguistic Theory and the Structure of English</li>
-        <li><b>LEL2B</b> — Phonetic Analysis and Empirical Methods</li>
-      </ul>
-      <p class="intro" style="margin-top:22px">
-        Attend when it works for you. No commitment: come to one session, come regularly,
-        or drop in when a topic is useful.
-      </p>
-    </div>
-  </section>
-
-  <!-- ================= FINALE ================= -->
-  <section class="band finale" id="join" aria-labelledby="join-h">
-    <div class="band-in">
-      <p class="eyebrow">See you Thursday</p>
-      <h2 id="join-h">Open the leaflet. Pick up a note. <em>Join us at the table.</em></h2>
-      <p class="intro" style="margin-inline:auto">
-        Thursday, 4:10 – 5:00pm · Teaching Room 13, Medical School, Teviot Pl EH8 9AG · Enter via Doorway 3.
-      </p>
-      <div class="hero-cta">
-        <a class="btn btn--gold" href="#brochure-stage">Open the leaflet</a>
-        <a class="btn btn--ghost" href="#resources">Pick up a note</a>
+  <!-- ============ WHY JOIN ============ -->
+  <section id="why">
+    <div class="wrap">
+      <p class="section-label">Why might I join?</p>
+      <h2 class="big">Because language makes more sense out loud, with others.</h2>
+      <div class="grid-cards">
+        <div class="card"><h3>Bring a question</h3><p>Take questions into a low-pressure peer space and try ideas without judgement.</p></div>
+        <div class="card"><h3>Hear other approaches</h3><p>See how other students tackle the same topic — and compare it with yours.</p></div>
+        <div class="card"><h3>Build confidence</h3><p>Grow by explaining, listening and trying ideas together. Try it together.</p></div>
+        <div class="card"><h3>Find community</h3><p>Belong to a friendly community of language-curious students.</p></div>
       </div>
     </div>
   </section>
 
+  <!-- ============ WHAT HAPPENS IN A SESSION ============ -->
+  <section id="session">
+    <div class="wrap">
+      <p class="section-label">What happens in a peer-assisted learning session?</p>
+      <h2 class="big">Small groups, shared examples, plenty of comparing notes.</h2>
+      <div class="steps">
+        <div class="step"><h3>Arrive &amp; settle</h3><p>Join the table with whatever you are working on. No preparation required.</p></div>
+        <div class="step"><h3>Bring a question</h3><p>Share a topic, an example or a tree you are unsure about.</p></div>
+        <div class="step"><h3>Compare notes</h3><p>Work through structures and sounds together, explaining as you go.</p></div>
+        <div class="step"><h3>Practise aloud</h3><p>Try pronunciations, build phrases and test ideas with peers.</p></div>
+        <div class="step"><h3>Take it forward</h3><p>Leave with new approaches and a note or two to explore next.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ RESOURCES ============ -->
+  <section id="resources">
+    <div class="wrap">
+      <p class="section-label">How can I explore useful Linguistics resources?</p>
+      <h2 class="big">Pick up a note from the table.</h2>
+      <p class="lead">
+        The paper notes around the leaflet are curated pathways into helpful Linguistics
+        resources — phonetics, syntax, morphology, pronunciation and grammar. Explore a
+        topic online, then take a question into the room, discuss it with peers, and
+        build confidence through participation.
+      </p>
+      <div class="cta-band">
+        <p style="margin-bottom:12px">Every note is a real starting point:</p>
+        <p style="margin:0 auto 0">
+          Explore a topic online → take a question into the room → discuss it with peers → build confidence together.
+        </p>
+        <div class="cta-actions" style="margin-top:18px">
+          <a class="pixel-btn" href="#brochure-stage">Back to the table</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ JOIN / CLOSING CTA ============ -->
+  <section id="join">
+    <div class="wrap">
+      <p class="section-label">Where can I find current practical programme information?</p>
+      <h2 class="big">In the leaflet — and at the table.</h2>
+      <p class="lead">
+        Online notes and resources can help you get started. LingPALS sessions are where
+        ideas become conversation. Practical details — such as timing, place and how to
+        take part — live in the leaflet above and in official programme information.
+      </p>
+      <div class="cta-band">
+        <h2>Open the leaflet. Pick up a note. Join us at the table.</h2>
+        <p>Bring one question to the next session — that is all it takes to start.</p>
+        <div class="cta-actions">
+          <a class="pixel-btn" href="#brochure-stage">Open the leaflet</a>
+          <a class="pixel-btn ghost" href="#resources">Explore a resource</a>
+        </div>
+        <p class="reassure">Start where you are. Try it together.</p>
+      </div>
+    </div>
+  </section>
 </main>
 
-<footer class="site-foot">
-  <div class="foot-in">
-    <div>
-      <h3>Keep up with our sessions</h3>
-      <ul>
-        <li>Instagram: <a href="https://www.instagram.com/eulingpals/">@eulingpals</a></li>
-        <li>Email: <a href="mailto:lingpals@eusa.ed.ac.uk">lingpals@eusa.ed.ac.uk</a></li>
-      </ul>
-    </div>
-    <div>
-      <h3>On LEARN</h3>
-      <ul>
-        <li>See our LEARN page for specific contact details of our team.</li>
-        <li>Suggest a topic on our Padlet discussion board.</li>
-      </ul>
-    </div>
-    <div>
-      <h3>About</h3>
-      <ul>
-        <li>Course Support Sessions for Pre-Honours LEL Students.</li>
-        <li>Led entirely by trained student volunteers in LEL.</li>
-        <li>Edinburgh University Students’ Association.</li>
-      </ul>
-    </div>
-  </div>
-
-  <div class="utility">
-    <span>Developer utility</span>
-    <label for="pdfInput" class="sr">Preview another PDF</label>
-    <input id="pdfInput" type="file" accept="application/pdf">
-    <span id="pdfStatus">assets/brochure.pdf</span>
-  </div>
-  <p class="legal">Session details are taken from the official LingPALS leaflet. Please check LEARN for the most current information.</p>
+<footer class="site-footer">
+  <p><b>LingPALS</b> — a peer-assisted learning programme for students exploring Linguistics and English Language.</p>
+  <p>Online resources complement discussion and learning in person. LingPALS supports — and never replaces — your lectures, tutorials and independent study.</p>
+  <nav class="foot-links" aria-label="Footer">
+    <a href="#">AI guidance</a>
+    <a href="#">Accessibility</a>
+    <a href="#">Programme information</a>
+    <a href="#brochure-stage">The leaflet</a>
+  </nav>
+  <p class="foot-note">Practical session details are drawn from the official brochure and approved programme information.</p>
 </footer>
 
-<noscript>
-  <p style="padding:20px;color:#FFF">The interactive leaflet needs JavaScript. You can
-  <a href="assets/brochure.pdf">download the LingPALS leaflet (PDF)</a> instead.
-  Sessions run every Thursday, 4:10–5:00pm, Teaching Room 13, Medical School, Teviot Pl EH8 9AG.</p>
-</noscript>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
 (function(){
   "use strict";
 
-  /* ========== CONFIG (editable) ========== */
-  const PDF_URL      = "assets/brochure.pdf";
-  const OUTSIDE_PAGE = 1;   // exterior
-  const INSIDE_PAGE  = 2;   // interior
-  const COVER_THIRD  = 2;   // right-hand third of page 1 is the cover
-
-  const PANEL_MAP = {
-    left:   { front:[OUTSIDE_PAGE, 0], back:[INSIDE_PAGE, 2] },
-    centre: { front:[OUTSIDE_PAGE, COVER_THIRD], back:[INSIDE_PAGE, 1] },
-    right:  { front:[OUTSIDE_PAGE, 1], back:[INSIDE_PAGE, 0] }
-  };
-
-  /* Mirrored hinges + identical signs = true Z-fold (left sweeps toward the
-     viewer, right sweeps away). Set right:-1 for tri-fold behaviour. */
-  const FOLD = { left:+1, right:+1 };
+  /* ---------- config ---------- */
+  const PDF_URL = "assets/brochure.pdf";
+  const OUTSIDE_PAGE = 1;   // exterior / outside
+  const INSIDE_PAGE  = 2;   // interior / inside
+  const COVER_THIRD  = 2;   // cover = page 1, third 2
 
   pdfjsLib.GlobalWorkerOptions.workerSrc =
     "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
-  /* ========== DOM ========== */
-  const root   = document.documentElement;
-  const stage  = document.getElementById('brochure-stage');
-  const tilt   = document.getElementById('tilt');
-  const broch  = document.getElementById('brochure');
-  const pLeft  = document.getElementById('p-left');
-  const pRight = document.getElementById('p-right');
-  const prevB  = document.getElementById('prev');
-  const nextB  = document.getElementById('next');
-  const restart= document.getElementById('restart');
-  const inspectB = document.getElementById('inspect');
-  const resetB   = document.getElementById('resetAngle');
-  const counter  = document.getElementById('counter');
-  const pips     = Array.from(document.querySelectorAll('.pip'));
-  const live     = document.getElementById('live');
-  const fileIn   = document.getElementById('pdfInput');
-  const status   = document.getElementById('pdfStatus');
+  /* ---------- elements ---------- */
+  const root       = document.documentElement;
+  const scene      = document.querySelector(".table-scene");
+  const stageWrap  = document.querySelector(".stage-wrap");
+  const stage      = document.getElementById("brochure-stage");
+  const tilt       = document.getElementById("tilt");
+  const prevBtn    = document.getElementById("prevBtn");
+  const nextBtn    = document.getElementById("nextBtn");
+  const restartBtn = document.getElementById("restartBtn");
+  const inspectBtn = document.getElementById("inspectBtn");
+  const resetBtn   = document.getElementById("resetAngleBtn");
+  const counter    = document.getElementById("counter");
+  const stateName  = document.getElementById("stateName");
+  const live       = document.getElementById("live");
+  const pips        = Array.from(document.querySelectorAll(".pip"));
+  const fileInput  = document.getElementById("pdfInput");
 
-  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  /* ========== STATE ========== */
-  let state = 1;                       // 1 cover · 2 exterior · 3 interior
-  let aspect = 240/360;                // panel w/h, replaced after render
-  let inspecting = false;
-  let dragging = false, sx=0, sy=0, ry=0, rx=0, ry0=0, rx0=0;
+  const STATE = [
+    {name:"Cover",           say:"Brochure cover. Step 1 of 3."},
+    {name:"Exterior spread", say:"Exterior spread. Step 2 of 3."},
+    {name:"Interior spread", say:"Interior spread. Step 3 of 3."}
+  ];
 
-  const LABELS = {
-    1:"Brochure cover. Step 1 of 3.",
-    2:"Exterior spread. Step 2 of 3.",
-    3:"Interior spread. Step 3 of 3."
-  };
+  let state = 0;
+  let aspect = 1.9; // panel height / width, refined after PDF loads
 
-  /* ========== PDF → PANEL FACES ========== */
-  async function loadPDF(src){
-    setEmpty("Loading leaflet…");
-    try{
-      const task = (typeof src === "string")
-        ? pdfjsLib.getDocument(src)
-        : pdfjsLib.getDocument({ data:src });
-      const pdf = await task.promise;
-      const pages = {};
-      for (const n of [OUTSIDE_PAGE, INSIDE_PAGE]){
-        if (n <= pdf.numPages) pages[n] = await renderThirds(pdf, n);
-      }
-      applyFaces(pages);
-      status.textContent = (typeof src === "string") ? src : "local preview";
-    }catch(err){
-      console.warn("[LingPALS] PDF unavailable:", err);
-      setEmpty("Leaflet artwork not found.\nAdd assets/brochure.pdf\nor use the developer preview.");
-    }
-    fit(true);
-  }
+  /* ---------- state machine ---------- */
+  function clamp(v,min,max){return Math.max(min,Math.min(max,v));}
 
-  async function renderThirds(pdf, pageNo){
-    const page = await pdf.getPage(pageNo);
-    const base = page.getViewport({ scale:1 });
-    const scale = Math.min(3, 2400 / base.width);
-    const vp = page.getViewport({ scale });
-    const c = document.createElement('canvas');
-    c.width = Math.floor(vp.width); c.height = Math.floor(vp.height);
-    await page.render({ canvasContext:c.getContext('2d', {alpha:false}), viewport:vp }).promise;
-
-    aspect = (c.width/3) / c.height;
-
-    const out = [];
-    const tw = Math.floor(c.width/3);
-    for (let i=0;i<3;i++){
-      const t = document.createElement('canvas');
-      t.width = tw; t.height = c.height;
-      t.getContext('2d').drawImage(c, i*tw, 0, tw, c.height, 0, 0, tw, c.height);
-      out.push(t.toDataURL('image/png'));
-    }
-    return out;
-  }
-
-  function applyFaces(pages){
-    Object.keys(PANEL_MAP).forEach(function(panel){
-      ['front','back'].forEach(function(side){
-        const [pg, third] = PANEL_MAP[panel][side];
-        const el = document.querySelector('[data-face="'+panel+'-'+side+'"]');
-        if (!el) return;
-        const src = pages[pg] && pages[pg][third];
-        el.innerHTML = '';
-        el.classList.remove('face--empty');
-        if (src){
-          const img = new Image();
-          img.alt = '';
-          img.src = src;
-          el.appendChild(img);
-        }
-      });
+  function applyState(){
+    scene.setAttribute("data-state", String(state));
+    prevBtn.disabled = state === 0;
+    nextBtn.disabled = state === 2;
+    counter.textContent = "0" + (state+1) + " / 03";
+    stateName.textContent = STATE[state].name;
+    live.textContent = STATE[state].say;
+    pips.forEach((p,i)=>{
+      p.setAttribute("data-on", i===state ? "true" : "false");
+      if(i===state) p.setAttribute("aria-current","step"); else p.removeAttribute("aria-current");
     });
-  }
-
-  function setEmpty(msg){
-    const centre = document.querySelector('[data-face="centre-front"]');
-    centre.classList.add('face--empty');
-    centre.textContent = msg;
-  }
-
-  /* ========== FOLD / TURN ========== */
-  function render(){
-    const angle = (state === 1) ? 180 : 0;
-    pLeft.style.transform  = 'rotateY('+(FOLD.left  * angle)+'deg) translateZ(2px)';
-    pRight.style.transform = 'rotateY('+(FOLD.right * angle)+'deg) translateZ(4px)';
-    broch.style.transform  = 'rotateY('+((state === 3) ? 180 : 0)+'deg)';
-
-    counter.textContent = '0'+state+' / 03';
-    pips.forEach(function(p,i){ p.classList.toggle('is-on', i < state); });
-
-    setDisabled(prevB, state === 1);
-    setDisabled(nextB, state === 3);
-
-    broch.setAttribute('aria-label', 'LingPALS Z-fold leaflet. ' + LABELS[state]);
-    live.textContent = LABELS[state];
-
     fit();
   }
+  function setState(n){ state = clamp(n,0,2); applyState(); }
+  function next(){ if(state<2) setState(state+1); }
+  function prev(){ if(state>0) setState(state-1); }
 
-  function setDisabled(btn, off){
-    btn.setAttribute('aria-disabled', off ? 'true' : 'false');
-    btn.tabIndex = 0; /* stays focusable — never trap or hide */
+  prevBtn.addEventListener("click", prev);
+  nextBtn.addEventListener("click", next);
+  restartBtn.addEventListener("click", ()=> setState(0));
+  pips.forEach(p=> p.addEventListener("click", ()=> setState(parseInt(p.dataset.step,10))));
+
+  /* ---------- keyboard ---------- */
+  document.addEventListener("keydown", (e)=>{
+    const t = e.target;
+    // Do not hijack while inside links, form fields, etc.
+    if (t.closest('input,textarea,select,a[href],[contenteditable="true"]')) return;
+    const k = e.key;
+    if (k==="ArrowRight" || k==="ArrowDown"){ e.preventDefault(); next(); }
+    else if (k==="ArrowLeft" || k==="ArrowUp"){ e.preventDefault(); prev(); }
+    else if (k===" " || k==="Enter"){
+      if (t === stage){ e.preventDefault(); next(); }   // only when the stage itself is focused
+    }
+  });
+
+  /* ---------- responsive fit ---------- */
+  function fit(){
+    const w = Math.max(220, stageWrap.getBoundingClientRect().width) - 20;
+    const maxH = Math.min(window.innerHeight * 0.62, 540);
+    let pw = Math.min(w/3, 300);
+    let ph = pw * aspect;
+    if (ph > maxH){ ph = maxH; pw = ph / aspect; }
+    root.style.setProperty("--panel-w", pw + "px");
+    root.style.setProperty("--panel-h", ph + "px");
   }
-
-  function go(n){
-    const next = Math.min(3, Math.max(1, n));
-    if (next === state) return;
-    state = next;
-    render();
-  }
-
-  /* ========== DYNAMIC FIT ========== */
   let rafId = null;
-  function fit(force){
-    if (rafId && !force) return;
-    rafId = requestAnimationFrame(function(){
-      rafId = null;
-      const panels = (state === 1) ? 1 : 3;
-      const gutter = window.innerWidth < 700 ? 24 : 64;
-      const availW = Math.max(120, stage.clientWidth  - gutter);
-      const availH = Math.max(160, stage.clientHeight - gutter);
-      let w = availW / panels;
-      let h = w / aspect;
-      if (h > availH){ h = availH; w = h * aspect; }
-      root.style.setProperty('--panel-w', Math.round(w)+'px');
-      root.style.setProperty('--panel-h', Math.round(h)+'px');
-    });
-  }
+  function scheduleFit(){ if(rafId) cancelAnimationFrame(rafId); rafId = requestAnimationFrame(fit); }
+  window.addEventListener("resize", scheduleFit);
+  window.addEventListener("orientationchange", scheduleFit);
+  if (window.visualViewport) window.visualViewport.addEventListener("resize", scheduleFit);
+  if ("ResizeObserver" in window){ new ResizeObserver(scheduleFit).observe(stageWrap); }
 
-  /* ========== CONTROLS ========== */
-  prevB.addEventListener('click', function(){ if (prevB.getAttribute('aria-disabled')!=='true') go(state-1); });
-  nextB.addEventListener('click', function(){ if (nextB.getAttribute('aria-disabled')!=='true') go(state+1); });
-  restart.addEventListener('click', function(){ go(1); resetAngle(); stage.focus(); });
+  /* ---------- 3D inspection ---------- */
+  let inspect=false, tiltX=0, tiltY=0, dragging=false, sx=0, sy=0, bx=0, by=0;
 
-  document.addEventListener('keydown', function(e){
-    if (e.target.closest('a, button, input, textarea, select, [contenteditable]')) return;
-    const nextKeys = ['ArrowRight','ArrowDown',' ','Spacebar','Enter'];
-    const prevKeys = ['ArrowLeft','ArrowUp'];
-    if (nextKeys.indexOf(e.key) > -1){ e.preventDefault(); go(state+1); }
-    else if (prevKeys.indexOf(e.key) > -1){ e.preventDefault(); go(state-1); }
-  });
-
-  /* ========== 3D INSPECTION ========== */
-  function resetAngle(){
-    rx = 0; ry = 0;
-    root.style.setProperty('--tilt-x','0deg');
-    root.style.setProperty('--tilt-y','0deg');
-    resetB.setAttribute('aria-disabled','true');
-  }
-
-  if (reduce){
-    inspectB.remove(); resetB.remove();
+  if (reduceMotion){
+    inspectBtn.style.display = "none";
+    resetBtn.style.display = "none";
   } else {
-    inspectB.addEventListener('click', function(){
-      inspecting = !inspecting;
-      inspectB.setAttribute('aria-pressed', String(inspecting));
-      stage.classList.toggle('is-inspecting', inspecting);
-      if (!inspecting) resetAngle();
-      live.textContent = inspecting
-        ? '3D inspection on. Drag the leaflet to tilt it.'
-        : '3D inspection off. ' + LABELS[state];
+    inspectBtn.addEventListener("click", ()=>{
+      inspect = !inspect;
+      inspectBtn.setAttribute("aria-pressed", String(inspect));
+      scene.parentElement.classList.toggle("inspecting", inspect);
     });
-    resetB.addEventListener('click', function(){ resetAngle(); live.textContent='Angle reset. '+LABELS[state]; });
-
-    stage.addEventListener('pointerdown', function(e){
-      if (!inspecting) return;
-      dragging = true; tilt.classList.add('is-dragging');
-      sx = e.clientX; sy = e.clientY; rx0 = rx; ry0 = ry;
-      stage.setPointerCapture(e.pointerId);
+    resetBtn.addEventListener("click", ()=>{
+      tiltX=0; tiltY=0;
+      tilt.classList.add("tilt-anim");
+      tilt.style.transform = "rotateX(0deg) rotateY(0deg)";
+      setTimeout(()=> tilt.classList.remove("tilt-anim"), 520);
     });
-    stage.addEventListener('pointermove', function(e){
-      if (!dragging) return;
-      e.preventDefault();
-      ry = clamp(ry0 + (e.clientX - sx) * 0.22, -30, 30);
-      rx = clamp(rx0 - (e.clientY - sy) * 0.18, -20, 20);
-      root.style.setProperty('--tilt-y', ry.toFixed(2)+'deg');
-      root.style.setProperty('--tilt-x', rx.toFixed(2)+'deg');
-      resetB.setAttribute('aria-disabled','false');
+    stage.addEventListener("pointerdown", (e)=>{
+      if(!inspect) return;
+      dragging=true; sx=e.clientX; sy=e.clientY; bx=tiltY; by=tiltX;
+      tilt.classList.remove("tilt-anim");
+      try{ stage.setPointerCapture(e.pointerId); }catch(_){}
     });
-    ['pointerup','pointercancel','pointerleave'].forEach(function(ev){
-      stage.addEventListener(ev, function(){ dragging=false; tilt.classList.remove('is-dragging'); });
+    stage.addEventListener("pointermove", (e)=>{
+      if(!dragging) return;
+      const dx = e.clientX - sx, dy = e.clientY - sy;
+      tiltY = clamp(bx + dx*0.25, -25, 25);   // gentle horizontal
+      tiltX = clamp(by - dy*0.25, -30, 30);   // constrained vertical
+      tilt.style.transform = "rotateX("+tiltX+"deg) rotateY("+tiltY+"deg)";
     });
+    const endDrag = ()=>{ dragging=false; };
+    stage.addEventListener("pointerup", endDrag);
+    stage.addEventListener("pointercancel", endDrag);
   }
-  function clamp(v,a,b){ return Math.min(b, Math.max(a, v)); }
 
-  /* ========== DEV PDF PREVIEW ========== */
-  fileIn.addEventListener('change', function(){
-    const f = fileIn.files && fileIn.files[0];
-    if (!f) return;
-    const r = new FileReader();
-    r.onload = function(){ loadPDF(new Uint8Array(r.result)); };
-    r.readAsArrayBuffer(f);
+  /* ---------- PDF rendering ---------- */
+  const FACE = {
+    centreFront: document.getElementById("centreFront"),
+    centreBack:  document.getElementById("centreBack"),
+    leftFront:   document.getElementById("leftFront"),
+    leftBack:    document.getElementById("leftBack"),
+    rightFront:  document.getElementById("rightFront"),
+    rightBack:   document.getElementById("rightBack")
+  };
+
+  async function renderPage(page){
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const base = page.getViewport({scale:1});
+    const targetW = 1500;                       // crisp source width
+    const scale = (targetW / base.width) * dpr;
+    const viewport = page.getViewport({scale});
+    const canvas = document.createElement("canvas");
+    canvas.width  = Math.floor(viewport.width);
+    canvas.height = Math.floor(viewport.height);
+    const ctx = canvas.getContext("2d");
+    await page.render({canvasContext:ctx, viewport}).promise;
+    return canvas;
+  }
+
+  function cropThird(srcCanvas, i){
+    const w = Math.floor(srcCanvas.width / 3);
+    const h = srcCanvas.height;
+    const c = document.createElement("canvas");
+    c.width = w; c.height = h;
+    c.getContext("2d").drawImage(srcCanvas, i*w, 0, w, h, 0, 0, w, h);
+    return c;
+  }
+
+  function setFace(face, canvas){
+    const old = face.querySelector(".pdf-canvas");
+    if(old) old.remove();
+    canvas.className = "pdf-canvas";
+    face.appendChild(canvas);
+    face.classList.add("loaded");
+  }
+
+  async function loadPDF(url){
+    try{
+      const doc = await pdfjsLib.getDocument(url).promise;
+      const p1 = await doc.getPage(OUTSIDE_PAGE);
+      const p2 = await doc.getPage(INSIDE_PAGE);
+      const c1 = await renderPage(p1);
+      const c2 = await renderPage(p2);
+
+      // refine panel aspect from real page geometry
+      aspect = c1.height / (c1.width / 3);
+
+      /* --- exterior (page 1) --- */
+      setFace(FACE.centreFront, cropThird(c1, COVER_THIRD)); // cover = third 2
+      setFace(FACE.leftFront,   cropThird(c1, 0));
+      setFace(FACE.rightFront,  cropThird(c1, 1));
+
+      /* --- interior (page 2), reversed so it reads L→R after the 180° turn --- */
+      setFace(FACE.rightBack,   cropThird(c2, 0));
+      setFace(FACE.centreBack,  cropThird(c2, 1));
+      setFace(FACE.leftBack,    cropThird(c2, 2));
+
+      fit();
+    }catch(err){
+      console.warn("LingPALS: PDF could not be loaded (" + url + "). Showing placeholder panels.", err);
+    }
+  }
+
+  fileInput.addEventListener("change", (e)=>{
+    const f = e.target.files && e.target.files[0];
+    if(!f) return;
+    const url = URL.createObjectURL(f);
+    loadPDF(url).then(()=> setTimeout(()=> URL.revokeObjectURL(url), 4000));
+    setState(0);
   });
 
-  /* ========== RE-FIT TRIGGERS ========== */
-  window.addEventListener('resize', function(){ fit(); });
-  window.addEventListener('orientationchange', function(){ setTimeout(fit, 220); });
-  if (window.visualViewport){
-    window.visualViewport.addEventListener('resize', function(){ fit(); });
-  }
-  if ('ResizeObserver' in window){
-    new ResizeObserver(function(){ fit(); }).observe(stage);
-  }
-
-  /* ========== BOOT ========== */
-  render();
+  /* ---------- init ---------- */
+  applyState();
+  fit();
   loadPDF(PDF_URL);
+
 })();
 </script>
 </body>
