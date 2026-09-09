@@ -3,451 +3,680 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>LingPALS — Unfold the Brochure</title>
+<title>LingPALS — Language is everywhere</title>
 
+<!-- Typography: DM Sans (interface/headings) + DM Mono (linguistic notation) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<!-- PDF.js (stable CDN build) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
 <style>
-  :root{
-    /* LingPALS brand: royal blue + gold, on a warm paper desk */
-    --desk-1:#e8d3af; --desk-2:#c99f6d; --desk-3:#8a5a34;
-    --ink:#12224a;
-    --accent:#f5b400;          /* LingPALS gold */
-    --accent-ink:#0b2a6b;
-    --paper:#0f3aa0;           /* the leaflet is deep blue */
-    --paper-edge:#0a2straße;
-    --focus:#0a58ca;
-    --paper-shadow: 0 26px 55px rgba(10,25,70,.5);
-  }
-  :root{ --paper-edge:#0a2870; } /* corrected edge colour */
+/* ============================================================
+   THEME TOKENS — LingPALS editorial midnight palette
+   ============================================================ */
+:root{
+  --bg-900:#070e28;
+  --bg-800:#0c1636;
+  --bg-700:#152350;
+  --ink:#eef1fb;
+  --muted:#a9b4dc;
+  --gold:#ffc531;
+  --gold-deep:#f5b400;
+  --violet:#8b7bff;
+  --cyan:#57d0dd;
+  --paper:#0f3aa0;            /* leaflet base colour behind canvases */
+  --paper-edge:#0a2870;
+  --focus:#ffd65a;
+  --card-bg:rgba(19,31,72,.72);
+  --card-border:rgba(139,123,255,.36);
+  --shadow-paper:0 30px 60px rgba(2,8,30,.6);
+  --easing-paper:cubic-bezier(.62,.04,.3,1);
+}
 
-  *{ box-sizing:border-box; }
-  html,body{ height:100%; }
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
 
-  body{
-    margin:0;
-    min-height:100dvh;
-    font-family:"Segoe UI", system-ui, sans-serif;
-    color:var(--ink);
-    display:flex; flex-direction:column; align-items:center;
-    overflow-x:hidden;
-    background:
-      radial-gradient(120% 90% at 50% -10%, rgba(255,251,240,.85), rgba(255,251,240,0) 55%),
-      radial-gradient(80% 60% at 50% 120%, rgba(70,40,16,.35), rgba(70,40,16,0) 60%),
-      repeating-linear-gradient(92deg, rgba(120,80,40,.05) 0 3px, rgba(120,80,40,0) 3px 7px),
-      linear-gradient(160deg, var(--desk-1), var(--desk-2) 55%, var(--desk-3));
-    background-attachment:fixed;
-  }
+body{
+  margin:0;
+  min-height:100dvh;
+  font-family:"DM Sans", system-ui, sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(60% 50% at 14% 8%,  rgba(139,123,255,.24), transparent 60%),
+    radial-gradient(55% 45% at 86% 12%, rgba(87,208,221,.16), transparent 60%),
+    radial-gradient(75% 60% at 50% 118%, rgba(255,197,49,.10), transparent 62%),
+    linear-gradient(160deg, var(--bg-800), var(--bg-900));
+  background-attachment:fixed;
+  overflow-x:hidden;
+}
+/* Subtle phonetic-grid / graph-paper reference */
+body::before{
+  content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background-image:
+    linear-gradient(rgba(139,123,255,.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139,123,255,.06) 1px, transparent 1px);
+  background-size:40px 40px;
+  -webkit-mask-image:radial-gradient(85% 75% at 50% 40%, #000 42%, transparent 100%);
+          mask-image:radial-gradient(85% 75% at 50% 40%, #000 42%, transparent 100%);
+}
+/* Restrained film-grain / noise */
+body::after{
+  content:""; position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.05;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.page{ position:relative; z-index:1; display:flex; flex-direction:column; min-height:100dvh; }
 
-  header{ text-align:center; padding:clamp(16px,4vw,30px) 18px 4px; max-width:820px; }
-  header h1{ margin:0; font-size:clamp(1.5rem,3.6vw,2.3rem); font-weight:700; letter-spacing:.3px; }
-  header p{ margin:8px 0 0; color:#5a4327; font-size:.95rem; }
+/* Skip link */
+.skip{
+  position:absolute; left:14px; top:-60px; z-index:50;
+  background:var(--gold); color:#231a00; font-weight:700;
+  padding:10px 16px; border-radius:12px; transition:top .2s ease; text-decoration:none;
+}
+.skip:focus{ top:12px; }
 
-  /* ---------- STAGE ---------- */
-  .stage{
-    flex:1 1 auto; width:100%;
-    min-height:clamp(280px, 48dvh, 620px);
-    display:flex; align-items:center; justify-content:center;
-    padding:clamp(6px,2vw,16px);
-    overflow:hidden;
-  }
-  .brochure-scaler{
-    perspective:2400px; transform-origin:center center;
-    transition:transform .5s ease; will-change:transform;
-  }
-  .brochure{
-    position:relative; transform-style:preserve-3d;
-    transition:transform .8s cubic-bezier(.62,.04,.3,1);
-  }
-  .brochure::before{
-    content:""; position:absolute; left:-40%; right:-40%; bottom:-14%;
-    height:40px; transform:translateZ(-80px); filter:blur(6px); pointer-events:none;
-    background:radial-gradient(closest-side, rgba(10,25,70,.5), rgba(10,25,70,0));
-  }
+/* ============================================================
+   SITE HEADER
+   ============================================================ */
+.site-header{
+  display:flex; align-items:baseline; gap:14px; flex-wrap:wrap;
+  padding:clamp(14px,3vw,26px) clamp(16px,5vw,48px) 0;
+}
+.brand{ font-weight:700; font-size:1.15rem; letter-spacing:.4px; }
+.brand span{ color:var(--gold); }
+.tagline{ margin:0; color:var(--muted); font-size:.85rem; font-family:"DM Mono", monospace; letter-spacing:1px; text-transform:uppercase; }
 
-  .panel{
-    position:absolute; top:0; transform-style:preserve-3d;
-    transition:transform .8s cubic-bezier(.62,.04,.3,1);
-  }
-  .panel.center{ left:0; }
-  .panel.left  { right:100%; transform-origin:right center; }
-  .panel.right { left:100%;  transform-origin:left center; }
+/* ============================================================
+   HERO
+   ============================================================ */
+main{ flex:1 1 auto; }
+.hero{
+  width:min(1240px, 100%); margin:0 auto;
+  padding:clamp(12px,3vw,32px) clamp(16px,5vw,48px) 40px;
+}
+.hero-copy{ max-width:720px; margin:clamp(10px,2.5vw,26px) auto clamp(14px,3vw,30px); text-align:center; }
+.eyebrow{
+  margin:0 0 12px; font-family:"DM Mono", monospace; letter-spacing:2px;
+  font-size:.72rem; color:var(--cyan); text-transform:uppercase;
+}
+.hero-copy h1{
+  margin:0; font-weight:700; line-height:1.05;
+  font-size:clamp(1.8rem, 5vw, 3.1rem); letter-spacing:-.5px;
+}
+.hero-copy h1 em{ color:var(--gold); font-style:normal; }
+.lede{ margin:16px auto 0; max-width:560px; color:var(--muted); font-size:clamp(.95rem,1.6vw,1.08rem); line-height:1.55; }
 
-  .face{
-    position:absolute; inset:0; backface-visibility:hidden; overflow:hidden;
-    background:var(--paper); box-shadow:var(--paper-shadow);
-    border:1px solid var(--paper-edge);
-  }
-  .face.back{ transform:rotateY(180deg); }
-  .face canvas{ display:block; width:100%; height:100%; }
+/* Positioning context for floating resource cards */
+.experience{ position:relative; }
 
-  .face::after{
-    content:""; position:absolute; inset:0; pointer-events:none;
-    background:linear-gradient(90deg,
-      rgba(0,0,0,.16), rgba(0,0,0,0) 10%,
-      rgba(0,0,0,0) 90%, rgba(0,0,0,.16));
-  }
+/* ============================================================
+   BROCHURE STAGE (framed hero)
+   ============================================================ */
+.stage-wrap{
+  display:flex; align-items:center; justify-content:center; gap:clamp(6px,1.5vw,16px);
+  width:min(660px, 100%); margin:0 auto;
+}
+.stage-frame{
+  flex:1 1 auto; position:relative; border-radius:22px;
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(139,123,255,.12), transparent 60%),
+    linear-gradient(180deg, rgba(21,35,80,.55), rgba(8,14,40,.65));
+  border:1px solid rgba(139,123,255,.28);
+  box-shadow:0 24px 70px rgba(2,8,30,.55), inset 0 1px 0 rgba(255,255,255,.06);
+  overflow:hidden; /* keeps decorative spill contained; brochure is scaled to fit */
+}
+.stage{
+  position:relative;
+  min-height:clamp(300px, 52dvh, 600px);
+  display:flex; align-items:center; justify-content:center;
+  padding:clamp(10px,2vw,22px);
+  perspective:2200px;                 /* perspective for the 3D children */
+}
+.scaler{
+  position:relative; transform-origin:center center;
+  transition:transform .5s ease; will-change:transform;
+}
+.brochure{
+  position:relative; transform-style:preserve-3d;
+  transition:transform .85s var(--easing-paper); will-change:transform;
+}
+.brochure::before{ /* soft contact shadow */
+  content:""; position:absolute; left:-45%; right:-45%; bottom:-12%;
+  height:42px; transform:translateZ(-90px); filter:blur(9px); pointer-events:none;
+  background:radial-gradient(closest-side, rgba(2,8,30,.65), transparent);
+}
 
-  .brochure.is-closed .panel.center .face.front{ cursor:pointer; }
-  .cover-cue{
-    position:absolute; left:50%; bottom:14px; transform:translateX(-50%);
-    background:var(--accent); color:var(--accent-ink);
-    font-size:.72rem; font-weight:700; letter-spacing:.4px;
-    padding:6px 12px; border-radius:999px; pointer-events:none;
-    opacity:0; transition:opacity .4s ease; z-index:5;
-  }
-  .brochure.is-closed .cover-cue{ opacity:1; animation:bob 2.2s ease-in-out infinite; }
-  @keyframes bob{ 50%{ transform:translateX(-50%) translateY(-4px);} }
+/* Panels: centre is the anchor; left/right hinge from the centre edges. */
+.panel{ position:absolute; top:0; transform-style:preserve-3d;
+        transition:transform .85s var(--easing-paper); }
+.panel.center{ left:0; }
+.panel.left  { right:100%; transform-origin:right center; }
+.panel.right { left:100%;  transform-origin:left center; }
 
-  /* ---------- HOTSPOTS ---------- */
-  .hotspot{
-    position:absolute; width:30px; height:30px; margin:-15px 0 0 -15px;
-    border-radius:50%; border:none; background:var(--accent); color:var(--accent-ink);
-    font-weight:700; cursor:pointer; box-shadow:0 4px 12px rgba(10,25,70,.5);
-    opacity:0; pointer-events:none; transition:opacity .4s ease, transform .2s ease; z-index:6;
-  }
-  .brochure.is-open .hotspot{ opacity:1; pointer-events:auto; }
-  .hotspot::before{
-    content:""; position:absolute; inset:-6px; border-radius:50%;
-    border:2px solid var(--accent); animation:pulse 2s ease-out infinite;
-  }
-  @keyframes pulse{ to{ transform:scale(1.9); opacity:0; } }
-  .hotspot:hover, .hotspot:focus-visible{ transform:scale(1.15); }
-  .hotspot .tip{
-    position:absolute; left:50%; bottom:140%;
-    transform:translateX(-50%) scale(.9); transform-origin:bottom center;
-    width:190px; background:#fffdf8; color:var(--ink);
-    border:1px solid #e7ddca; border-radius:10px; padding:9px 11px;
-    font-size:.75rem; line-height:1.4; font-weight:500;
-    box-shadow:0 10px 24px rgba(10,25,70,.4);
-    opacity:0; pointer-events:none; transition:opacity .2s ease, transform .2s ease;
-  }
-  .hotspot[aria-expanded="true"] .tip{ opacity:1; transform:translateX(-50%) scale(1); }
+.face{
+  position:absolute; inset:0; overflow:hidden;
+  backface-visibility:hidden;         /* stops rear artwork bleeding forward */
+  -webkit-backface-visibility:hidden;
+  background:var(--paper);
+  border:1px solid var(--paper-edge);
+  box-shadow:var(--shadow-paper);
+}
+/* Reverse faces are mirrored locally; the 180° whole-piece turn un-mirrors them. */
+.face.back{ transform:rotateY(180deg); }
+.face canvas{ display:block; width:100%; height:100%; }
+.face::after{ /* gentle fold shading at the seams */
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background:linear-gradient(90deg, rgba(0,0,0,.18), transparent 10%, transparent 90%, rgba(0,0,0,.18));
+}
 
-  /* ---------- CONTROLS ---------- */
-  .controls{
-    width:min(720px, 94vw);
-    background:rgba(255,253,248,.85);
-    border:1px solid rgba(10,25,70,.14);
-    backdrop-filter:blur(6px);
-    border-radius:18px; padding:16px 20px; margin:8px 0 30px;
-    display:grid; gap:14px; box-shadow:0 12px 30px rgba(58,36,15,.22);
-  }
-  .row{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; justify-content:center; }
+.brochure.is-closed .panel.center .face.front{ cursor:pointer; }
+.cover-cue{
+  position:absolute; left:50%; bottom:14px; transform:translateX(-50%);
+  background:var(--gold); color:#231a00; z-index:5;
+  font-size:.72rem; font-weight:700; letter-spacing:.4px;
+  padding:6px 13px; border-radius:999px; pointer-events:none;
+  opacity:0; transition:opacity .4s ease;
+}
+.brochure.is-closed .cover-cue{ opacity:1; animation:bob 2.4s ease-in-out infinite; }
+@keyframes bob{ 50%{ transform:translateX(-50%) translateY(-4px); } }
 
-  button, .filebtn{
-    font-family:inherit; background:var(--accent); color:var(--accent-ink);
-    border:2px solid transparent; font-weight:700; padding:11px 18px;
-    border-radius:12px; cursor:pointer; font-size:.9rem;
-    transition:transform .1s, filter .15s;
-  }
-  button:hover, .filebtn:hover{ filter:brightness(1.06); }
-  button:active{ transform:translateY(1px); }
-  button[disabled]{ opacity:.4; cursor:not-allowed; }
-  .ghost{ background:transparent; color:#12224a; border:2px solid rgba(10,25,70,.3); }
+/* ---------- Navigation arrows ---------- */
+.nav-arrow{
+  flex:0 0 auto; width:52px; height:52px; min-width:44px; min-height:44px;
+  display:grid; place-items:center; border-radius:50%; cursor:pointer;
+  background:rgba(20,32,74,.8); color:var(--ink);
+  border:1px solid rgba(139,123,255,.4);
+  box-shadow:0 8px 22px rgba(2,8,30,.5);
+  transition:transform .12s ease, background .2s ease, opacity .2s ease;
+}
+.nav-arrow svg{ width:22px; height:22px; }
+.nav-arrow:hover{ background:rgba(31,47,99,.95); }
+.nav-arrow:active{ transform:scale(.94); }
+.nav-arrow[disabled]{ opacity:.32; cursor:not-allowed; }
 
-  .progress{ display:flex; gap:10px; align-items:center; }
-  .dot{
-    width:34px; height:10px; border-radius:999px; border:none; padding:0; cursor:pointer;
-    background:rgba(10,25,70,.2); transition:background .3s ease, transform .2s ease;
-  }
-  .dot[aria-current="true"]{ background:var(--accent); transform:scaleY(1.3); }
+/* ---------- Toolbar below the brochure ---------- */
+.toolbar{
+  width:min(660px,100%); margin:18px auto 0;
+  display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:12px 16px;
+}
+.progress{ display:flex; align-items:center; gap:12px; }
+.progress .count{ font-family:"DM Mono", monospace; font-size:.82rem; color:var(--muted); letter-spacing:1px; }
+.dots{ display:flex; gap:8px; }
+.dot{
+  width:26px; height:8px; border-radius:999px; border:none; padding:0; cursor:pointer;
+  background:rgba(139,123,255,.3); transition:background .3s ease, transform .2s ease;
+}
+.dot[aria-current="true"]{ background:var(--gold); transform:scaleY(1.4); }
 
-  .filebtn input{ display:none; }
-  .status{ font-size:.82rem; color:#12224a; text-align:center; min-height:1em; }
+.btn{
+  font-family:inherit; font-weight:600; font-size:.84rem; cursor:pointer;
+  padding:10px 16px; min-height:44px; border-radius:12px;
+  background:transparent; color:var(--ink); border:1px solid rgba(139,123,255,.4);
+  transition:background .2s ease, transform .1s ease, border-color .2s ease;
+}
+.btn:hover{ background:rgba(139,123,255,.16); }
+.btn:active{ transform:translateY(1px); }
+.btn[aria-pressed="true"]{ background:var(--gold); color:#231a00; border-color:var(--gold); }
+.btn[disabled]{ opacity:.4; cursor:not-allowed; }
+.btn.hidden{ display:none; }
 
-  a:focus-visible, button:focus-visible, .filebtn:focus-visible,
-  .hotspot:focus-visible, .stage:focus-visible{
-    outline:3px solid var(--focus); outline-offset:2px; border-radius:8px;
-  }
-  .sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px;
-    overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+.filebtn{ position:relative; overflow:hidden; }
+.filebtn input{ position:absolute; inset:0; opacity:0; cursor:pointer; }
 
-  @media (pointer:coarse){
-    button, .filebtn{ padding:13px 18px; }
-    .hotspot{ width:38px; height:38px; margin:-19px 0 0 -19px; }
-  }
-  @media (max-width:560px){
-    header p{ font-size:.86rem; }
-    .controls{ padding:14px; gap:12px; margin-bottom:20px; }
-    #unfoldBtn, #foldBtn, #resetBtn, .filebtn{ flex:1 1 44%; text-align:center; }
-    .progress{ order:-1; width:100%; justify-content:center; }
-    .dot{ width:44px; height:12px; }
-  }
-  @media (max-height:520px) and (orientation:landscape){
-    header{ padding:8px 18px 0; } header p{ display:none; }
-    .stage{ min-height:60dvh; } .controls{ margin:4px 0 12px; }
-  }
-  @media (max-width:700px){ .brochure-scaler{ perspective:1500px; } }
+.stage-note{ width:min(560px,100%); margin:14px auto 0; text-align:center; color:var(--muted); font-size:.9rem; }
+.status{ width:min(560px,100%); margin:8px auto 0; text-align:center; font-size:.82rem;
+         color:var(--cyan); font-family:"DM Mono", monospace; min-height:1.2em; }
+.inspect-hint{ width:min(560px,100%); margin:6px auto 0; text-align:center; color:var(--muted); font-size:.78rem; }
 
-  @media (prefers-reduced-motion: reduce){
-    .brochure, .panel, .brochure-scaler{ transition-duration:.001ms !important; }
-    .hotspot::before, .brochure.is-closed .cover-cue{ animation:none !important; }
+/* ============================================================
+   FLOATING RESOURCE CARDS
+   ============================================================ */
+.resource-cards-heading{ text-align:center; margin:34px 0 4px; font-size:1.05rem; letter-spacing:.3px; }
+.resource-cards-sub{ text-align:center; margin:0 0 18px; color:var(--muted); font-size:.86rem; }
+
+.rcard{
+  display:flex; flex-direction:column; gap:6px; text-decoration:none;
+  padding:14px 15px; border-radius:16px; color:var(--ink);
+  background:linear-gradient(160deg, rgba(31,47,99,.92), rgba(12,22,54,.92));
+  border:1px solid var(--card-border);
+  box-shadow:0 14px 30px rgba(2,8,30,.5), inset 0 1px 0 rgba(255,255,255,.06);
+  transition:transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+  min-height:44px;
+}
+.rcard:hover, .rcard:focus-visible, .rcard:focus-within{
+  transform:translateY(-4px); border-color:var(--gold);
+  box-shadow:0 22px 44px rgba(2,8,30,.6);
+}
+.rcard-symbol{ font-family:"DM Mono", monospace; font-size:1.15rem; color:var(--gold); }
+.rcard-title{ font-weight:700; font-size:.92rem; }
+.rcard-desc{ color:var(--muted); font-size:.8rem; line-height:1.45;
+             max-height:0; opacity:0; overflow:hidden;
+             transition:max-height .3s ease, opacity .3s ease; }
+.rcard:hover .rcard-desc, .rcard:focus-visible .rcard-desc, .rcard:focus-within .rcard-desc{
+  max-height:150px; opacity:1;
+}
+
+/* Desktop/laptop: float cards around the stage perimeter (never over the brochure) */
+@media (min-width:1120px){
+  .resource-cards{ position:absolute; inset:0; pointer-events:none; }
+  .resource-cards-heading, .resource-cards-sub{ display:none; }
+  .rcard{ position:absolute; width:186px; pointer-events:auto; }
+  .rcard:nth-child(1){ left:0;  top:2%;  }
+  .rcard:nth-child(3){ left:0;  top:37%; }
+  .rcard:nth-child(5){ left:0;  top:72%; }
+  .rcard:nth-child(2){ right:0; top:2%;  }
+  .rcard:nth-child(4){ right:0; top:37%; }
+  .rcard:nth-child(6){ right:0; top:72%; }
+  /* Gentle drift (disabled for reduced motion further down) */
+  .rcard{ animation:drift 9s ease-in-out infinite; }
+  .rcard:nth-child(even){ animation-duration:11s; animation-delay:-3s; }
+  .rcard:nth-child(3n){ animation-delay:-1.5s; }
+}
+@keyframes drift{ 50%{ transform:translateY(-8px); } }
+
+/* Tablet & mobile: cards drop into a responsive grid beneath the brochure,
+   with descriptions permanently visible (touch-friendly). */
+@media (max-width:1119px){
+  .resource-cards{
+    display:grid; gap:12px; margin-top:8px;
+    grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));
   }
+  .rcard-desc{ max-height:none; opacity:1; }
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+footer{
+  padding:24px clamp(16px,5vw,48px) 34px; text-align:center;
+  color:var(--muted); font-size:.8rem; border-top:1px solid rgba(139,123,255,.14);
+}
+
+/* ============================================================
+   FOCUS + UTILITIES
+   ============================================================ */
+:focus-visible{ outline:3px solid var(--focus); outline-offset:3px; border-radius:8px; }
+.sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+          overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+
+/* ---------- Responsive perspective / short landscape ---------- */
+@media (max-width:760px){ .stage{ perspective:1400px; } }
+@media (max-width:460px){ .stage{ perspective:1000px; } }
+
+@media (max-height:520px) and (orientation:landscape){
+  .site-header{ padding-top:8px; }
+  .hero-copy .lede{ display:none; }
+  .stage{ min-height:64dvh; }
+  .resource-cards, .stage-note, .inspect-hint{ /* keep but compact */ }
+}
+
+@media (pointer:coarse){
+  .btn{ padding:12px 16px; }
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce){
+  .scaler, .brochure, .panel{ transition-duration:.001ms !important; }
+  .rcard{ animation:none !important; }
+  .brochure.is-closed .cover-cue{ animation:none !important; }
+  .rcard, .nav-arrow, .btn{ transition:none !important; }
+}
 </style>
 </head>
 <body>
+<div class="page">
 
-<header>
-  <h1>LingPALS — Unfold the Brochure</h1>
-  <p>Peer support sessions for pre-honours Linguistics &amp; English Language students. Tap the cover — or use the buttons — to open each fold and see inside.</p>
-</header>
+  <a class="skip" href="#brochure-experience">Skip to the brochure</a>
 
-<main class="stage" id="stage" tabindex="0"
-      aria-label="Interactive LingPALS z-fold brochure. Use the Unfold and Fold buttons, or arrow keys, to open and close it.">
-  <div class="brochure-scaler" id="scaler">
-    <div class="brochure is-closed" id="brochure">
+  <header class="site-header">
+    <div class="brand">Ling<span>PALS</span></div>
+    <p class="tagline">Peer-led language learning</p>
+  </header>
 
-      <span class="cover-cue" aria-hidden="true">Tap to open ›</span>
+  <main>
+    <section class="hero" aria-labelledby="hero-heading">
 
-      <div class="panel left" id="panelLeft">
-        <div class="face front"><canvas></canvas></div>
-        <div class="face back"><canvas></canvas></div>
-      </div>
-      <div class="panel center" id="panelCenter">
-        <div class="face front"><canvas></canvas></div>
-        <div class="face back"><canvas></canvas></div>
-      </div>
-      <div class="panel right" id="panelRight">
-        <div class="face front"><canvas></canvas></div>
-        <div class="face back"><canvas></canvas></div>
+      <div class="hero-copy">
+        <p class="eyebrow">LingPALS · Peer-led language learning</p>
+        <h1 id="hero-heading">Language is everywhere. <em>Start pulling it apart.</em></h1>
+        <p class="lede">Meet fellow language-curious students, make sense of lectures, swap study strategies, and explore how sounds, words and sentences work.</p>
       </div>
 
-    </div>
-  </div>
-</main>
+      <div class="experience" id="brochure-experience">
 
-<div class="controls">
-  <div class="row">
-    <button id="foldBtn" class="ghost" aria-label="Fold one panel back">‹ Fold</button>
-    <div class="progress" role="group" aria-label="Unfolding progress">
-      <button class="dot" data-stage="0" aria-label="Front cover" aria-current="true"></button>
-      <button class="dot" data-stage="1" aria-label="Half open"></button>
-      <button class="dot" data-stage="2" aria-label="Inside spread"></button>
-    </div>
-    <button id="unfoldBtn" aria-label="Unfold one panel">Unfold ›</button>
-  </div>
-  <div class="row">
-    <button id="resetBtn" class="ghost">Start again</button>
-    <label class="filebtn">Load another PDF
-      <input type="file" id="file" accept="application/pdf">
-    </label>
-  </div>
-  <p class="status" id="status" role="status" aria-live="polite">Loading LingPALS brochure…</p>
+        <!-- Concise text alternative for the decorative brochure canvases -->
+        <p class="sr-only">
+          An interactive three-panel LingPALS leaflet. It has three steps: the front cover,
+          the outside spread, and the inside spread. Use the previous and next buttons,
+          the arrow keys, or tap the leaflet to move between steps.
+        </p>
+
+        <div class="stage-wrap">
+          <button class="nav-arrow" id="prevBtn" type="button" aria-label="Previous step" aria-controls="brochure" disabled>
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+          </button>
+
+          <div class="stage-frame">
+            <div class="stage" id="stage">
+              <div class="scaler" id="scaler">
+                <div class="brochure is-closed" id="brochure">
+                  <span class="cover-cue" aria-hidden="true">Tap to open ›</span>
+
+                  <div class="panel left" id="panelLeft">
+                    <div class="face front"><canvas aria-hidden="true"></canvas></div>
+                    <div class="face back"><canvas aria-hidden="true"></canvas></div>
+                  </div>
+                  <div class="panel center" id="panelCenter">
+                    <div class="face front"><canvas aria-hidden="true"></canvas></div>
+                    <div class="face back"><canvas aria-hidden="true"></canvas></div>
+                  </div>
+                  <div class="panel right" id="panelRight">
+                    <div class="face front"><canvas aria-hidden="true"></canvas></div>
+                    <div class="face back"><canvas aria-hidden="true"></canvas></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button class="nav-arrow" id="nextBtn" type="button" aria-label="Next step" aria-controls="brochure">
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+
+        <nav class="toolbar" aria-label="Brochure navigation">
+          <div class="progress">
+            <span class="count" id="count">01 / 03</span>
+            <div class="dots" role="group" aria-label="Step">
+              <button class="dot" type="button" data-state="0" aria-label="Step 1: cover" aria-current="true"></button>
+              <button class="dot" type="button" data-state="1" aria-label="Step 2: exterior spread"></button>
+              <button class="dot" type="button" data-state="2" aria-label="Step 3: interior spread"></button>
+            </div>
+          </div>
+          <button class="btn" id="restartBtn" type="button">Restart brochure</button>
+          <button class="btn" id="inspectBtn" type="button" aria-pressed="false">Inspect in 3D</button>
+          <button class="btn hidden" id="resetAngleBtn" type="button">Reset angle</button>
+          <label class="btn filebtn">Preview another PDF
+            <input type="file" id="file" accept="application/pdf" aria-label="Preview another PDF file">
+          </label>
+        </nav>
+
+        <p class="stage-note">Open the leaflet for this week’s sessions, practical details and ways to get involved.</p>
+        <p class="inspect-hint" id="inspectHint">Optional: turn on <strong>Inspect in 3D</strong> to gently tilt and hold the leaflet.</p>
+        <p class="status" id="status" role="status" aria-live="polite">Loading the LingPALS leaflet…</p>
+
+        <!-- ============================================================
+             RESOURCE CARDS
+             These are real links. The default destination is a placeholder.
+             Replace # with the destination URL before publishing.
+             Card copy/symbols/links live in the RESOURCE_CARDS array below.
+             ============================================================ -->
+        <h2 class="resource-cards-heading">Ways into Linguistics</h2>
+        <p class="resource-cards-sub">Pathways into study resources and LingPALS support.</p>
+        <div class="resource-cards" id="resourceCards"></div>
+
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>LingPALS · Peer-led language learning. Leaflet content is loaded from the PDF; verify details from the source before sharing.</p>
+  </footer>
+
 </div>
 
 <script>
 /* ============================================================
-   PDF.js worker
+   PDF.js worker (matched to the CDN library version above)
    ============================================================ */
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
-/* ------------------------------------------------------------
-   CONFIG
-   ------------------------------------------------------------ */
-const PDF_URL        = "assets/brochure.pdf";
-const DISPLAY_HEIGHT = 460;
-const RENDER_SCALE   = 2;
+/* ============================================================
+   CONFIGURATION
+   ============================================================ */
 
-/* Which page is which. If your PDF has the pages the other way
-   round, just swap these two numbers.
-   OUTSIDE = the "Stay Tuned / LingPALS cover" sheet.
-   INSIDE  = the "Come along / Why attend / How to sign up" sheet. */
+/* Relative path so the site works on a GitHub Pages *project* site
+   (e.g. https://user.github.io/repo/). Do NOT use a leading "/". */
+const PDF_URL = "assets/brochure.pdf";
+
+/* The PDF has exactly two pages:
+   OUTSIDE_PAGE = PDF page 1 = EXTERIOR / outside of the z-fold.
+   INSIDE_PAGE  = PDF page 2 = INTERIOR / inside spread.
+   If a replacement PDF has them the other way round, swap these. */
 const OUTSIDE_PAGE = 1;
 const INSIDE_PAGE  = 2;
 
-/* Which third of the OUTSIDE page is the front cover.
-   In the LingPALS artwork the cover ("LingPALS [lɪŋpʰaɫz]") is the
-   RIGHT-hand third, so COVER_THIRD = 2. That third is shown on the
-   centre panel when the brochure is closed.                        */
+/* Which vertical third of the EXTERIOR page is the front cover.
+   0 = left third, 1 = centre third, 2 = right third.
+   For this LingPALS leaflet the cover ("LingPALS [lɪŋpʰaɫz]") is the
+   RIGHT third, so COVER_THIRD = 2. This third is placed on the
+   front-facing CENTRE panel, so it is the only thing visible when closed. */
 const COVER_THIRD = 2;
 
-/* Unfolding stages.
-   wing  = fold angle of each side panel (deg)
-   spin  = whole-piece rotation (0 = exterior faces you, 180 = interior)
-   tilt  = gentle 3D tilt (rotateX)
-   depth = how far the folded wings are pushed BEHIND the cover (px)
-           -> this is the fix for the "bleed-through" bug            */
-const STAGES = [
-  { wing:170, spin:0,   tilt:-12, depth:12, label:"Front cover — LingPALS peer support" },
-  { wing:82,  spin:90,  tilt:-6,  depth:5,  label:"Half open — turning the page" },
-  { wing:0,   spin:180, tilt:0,   depth:0,  label:"Inside — sessions, benefits & how to sign up" }
+/* Rendering: logical panel height and a resolution multiplier.
+   RENDER_SCALE follows device pixel ratio for crisp text, but a hard
+   MAX_CANVAS_W guard prevents huge canvases on high-DPR phones. */
+const DISPLAY_HEIGHT = 470;
+const RENDER_SCALE   = Math.min(2.5, Math.max(2, window.devicePixelRatio || 1));
+const MAX_CANVAS_W   = 2600;
+const MAX_FIT_SCALE  = 1.2;  /* allow slight upscaling on large monitors */
+
+/* Floating resource cards. Each is a real <a> link.
+   Replace url:"#" with the destination URL before publishing. */
+const RESOURCE_CARDS = [
+  { title:"Speech sounds",     symbol:"/ŋ/",         desc:"The International Phonetic Alphabet and how speech sounds are made.",     url:"#" },
+  { title:"Syntax",            symbol:"NP → Det N",  desc:"How words combine into phrases and sentence structure.",                 url:"#" },
+  { title:"Morphology",        symbol:"un-happi-ness",desc:"Word formation — breaking words into their meaningful parts.",           url:"#" },
+  { title:"Pronunciation",     symbol:"ʔ ə ˈnaɪs",   desc:"Transcription and pronunciation practice with peers.",                   url:"#" },
+  { title:"Parse trees",       symbol:"S → NP VP",   desc:"Grammars, rewrite rules and drawing tree diagrams.",                     url:"#" },
+  { title:"LingPALS support",  symbol:"LANG",        desc:"Study skills, peer mentoring and ways to get involved.",                 url:"#" }
 ];
 
-/* Real LingPALS hotspots on the INTERIOR (page 2).
-   Interior thirds:  left = "Come along every Thursday",
-                     centre = "Why attend?",  right = "How to sign up". */
-const HOTSPOTS = [
-  { panel:"left",   x:52, y:30, label:"When & where",
-    text:"First session Thu 24 Sept — meet the team & Q&A. Then every Thursday 4:10–5:00pm, Teaching Room 13, Medical School, Teviot Pl EH8 9AG (enter via Doorway 3)." },
-  { panel:"center", x:50, y:34, label:"Why attend",
-    text:"Weekly peer-support led by trained student volunteers, based on what's coming up in your course. No prep needed — make friends, consolidate learning and get tips from peers." },
-  { panel:"right",  x:46, y:40, label:"Am I eligible?",
-    text:"Taking LEL1A, LEL2A or LEL2B? You're already on the LingPALS mailing list. No commitment — come once, come weekly, or drop in when a topic is useful." },
-  { panel:"right",  x:52, y:72, label:"Contact",
-    text:"Instagram @eulingpals · lingpals@eusa.ed.ac.uk · full team details on the LEARN page." }
+/* ------------------------------------------------------------
+   FLIPBOOK STATES
+   spin  = whole-piece rotateY (0 = exterior faces you, 180 = interior)
+   tilt  = gentle editorial rotateX
+   wing  = side-panel fold angle (180 = folded flat behind the cover)
+   depthL/depthR = how far each wing sits BEHIND the cover when closed.
+
+   Depth ordering is expressed purely through 3D transforms:
+   at wing 180° each wing rotates to overlap the centre but faces
+   backwards; translateZ then pushes it further behind, and the opaque
+   centre panel (plus backface-visibility) occludes it — so no artwork
+   bleeds through in the closed state.
+   ------------------------------------------------------------ */
+const STATES = [
+  { key:"closed",   spin:0,   tilt:-8, wing:180, depthL:6, depthR:12, footprint:1, label:"Brochure cover"   },
+  { key:"exterior", spin:0,   tilt:-4, wing:0,   depthL:0, depthR:0,  footprint:3, label:"Exterior spread"  },
+  { key:"interior", spin:180, tilt:-4, wing:0,   depthL:0, depthR:0,  footprint:3, label:"Interior spread"  }
 ];
 
 /* ============================================================
    ELEMENTS + STATE
    ============================================================ */
-const stage    = document.getElementById("stage");
+const stageEl  = document.getElementById("stage");
 const scaler   = document.getElementById("scaler");
 const brochure = document.getElementById("brochure");
 const statusEl = document.getElementById("status");
+const countEl  = document.getElementById("count");
 const dots     = [...document.querySelectorAll(".dot")];
+const prevBtn  = document.getElementById("prevBtn");
+const nextBtn  = document.getElementById("nextBtn");
+const restartBtn   = document.getElementById("restartBtn");
+const inspectBtn   = document.getElementById("inspectBtn");
+const resetAngleBtn= document.getElementById("resetAngleBtn");
+const inspectHint  = document.getElementById("inspectHint");
+
 const panels = {
   left:   document.getElementById("panelLeft"),
   center: document.getElementById("panelCenter"),
   right:  document.getElementById("panelRight")
 };
+
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-let stageIndex = 0;
+let stateIndex = 0;
 let panelW = 300, panelH = DISPLAY_HEIGHT;
 
+/* Orbit / inspection state */
+let inspectOn = false;
+let orbitX = 0, orbitY = 0;
+
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
 /* ============================================================
-   APPLY STAGE  (bug fix: translateZ pushes wings behind cover)
+   APPLY STATE
    ============================================================ */
-function applyStage(){
-  const s = STAGES[stageIndex];
+function applyBrochureTransform(){
+  const s = STATES[stateIndex];
+  brochure.style.transform =
+    `rotateX(${s.tilt + orbitX}deg) rotateY(${s.spin + orbitY}deg)`;
+}
 
-  brochure.style.transform = `rotateX(${s.tilt}deg) rotateY(${s.spin}deg)`;
+function applyState(){
+  const s = STATES[stateIndex];
 
-  // Keep the cover a hair forward so it always occludes the tucked wings
-  panels.center.style.transform = `translateZ(2px)`;
-  panels.left.style.transform   = `translateZ(${-s.depth}px) rotateY(${ s.wing}deg)`;
-  panels.right.style.transform  = `translateZ(${-s.depth}px) rotateY(${-s.wing}deg)`;
+  applyBrochureTransform();
 
-  brochure.classList.toggle("is-closed", stageIndex === 0);
-  brochure.classList.toggle("is-open",   stageIndex === STAGES.length - 1);
+  /* Panel folds. The wing rotation happens around the hinge shared with
+     the centre panel; translateZ is applied AFTER the rotation so, once a
+     wing has folded to 180°, its local +Z points backwards — pushing it
+     cleanly behind the opaque cover. */
+  panels.center.style.transform = `translateZ(0px)`;
+  panels.left.style.transform   = `rotateY(${ s.wing}deg) translateZ(${s.depthL}px)`;
+  panels.right.style.transform  = `rotateY(${-s.wing}deg) translateZ(${s.depthR}px)`;
 
-  dots.forEach((d,i)=> d.setAttribute("aria-current", i === stageIndex));
-  document.getElementById("foldBtn").disabled   = stageIndex === 0;
-  document.getElementById("unfoldBtn").disabled = stageIndex === STAGES.length - 1;
+  brochure.classList.toggle("is-closed", stateIndex === 0);
+  brochure.classList.toggle("is-open",   stateIndex === STATES.length - 1);
 
-  statusEl.textContent = s.label;
-  history.replaceState(null, "", "#stage=" + stageIndex);
+  /* Controls */
+  prevBtn.disabled = stateIndex === 0;
+  nextBtn.disabled = stateIndex === STATES.length - 1;
+  dots.forEach((d,i)=> d.setAttribute("aria-current", String(i === stateIndex)));
+  countEl.textContent =
+    String(stateIndex + 1).padStart(2,"0") + " / " + String(STATES.length).padStart(2,"0");
+
+  /* Accessible live announcement */
+  statusEl.textContent = `${s.label}. Step ${stateIndex + 1} of ${STATES.length}.`;
+
+  history.replaceState(null, "", "#state=" + stateIndex);
   requestFit();
 }
-function goToStage(i){
-  stageIndex = Math.max(0, Math.min(STAGES.length - 1, i));
-  applyStage();
+
+function goTo(i){
+  stateIndex = clamp(i, 0, STATES.length - 1);
+  applyState();
 }
-const unfold = ()=> goToStage(stageIndex + 1);
-const fold   = ()=> goToStage(stageIndex - 1);
+const next = () => goTo(stateIndex + 1);
+const prev = () => goTo(stateIndex - 1);
 
 /* ============================================================
    RESPONSIVE FITTING
+   The closed state occupies a one-panel footprint; the open states a
+   three-panel footprint. We compute a scale() for the wrapper (rather
+   than relying on CSS transforms alone) so the brochure always fits and
+   stays centred. Recalculated on every state change and on resize.
    ============================================================ */
 function currentFootprint(){
-  const t = stageIndex / (STAGES.length - 1);
-  const widthPanels = 1 + 2 * t;
-  return { w: panelW * widthPanels, h: panelH * 1.22 };
+  const s = STATES[stateIndex];
+  return { w: panelW * s.footprint, h: panelH * 1.18 };
 }
 function fitToViewport(){
   const { w, h } = currentFootprint();
-  const availW = stage.clientWidth  - 16;
-  const availH = stage.clientHeight - 16;
-  if(availW <= 0 || availH <= 0) return;
-  const s = Math.min(1, availW / w, availH / h);
+  const availW = stageEl.clientWidth  - 28;
+  const availH = stageEl.clientHeight - 28;
+  if (availW <= 0 || availH <= 0 || w <= 0) return;
+  const s = Math.min(MAX_FIT_SCALE, availW / w, availH / h);
   scaler.style.transform = `scale(${s.toFixed(4)})`;
 }
 let fitPending = false;
-function requestFit(){
-  if(fitPending) return;
+function requestFit(){                 /* debounced via requestAnimationFrame */
+  if (fitPending) return;
   fitPending = true;
-  requestAnimationFrame(()=>{ fitPending = false; fitToViewport(); });
+  requestAnimationFrame(() => { fitPending = false; fitToViewport(); });
 }
 window.addEventListener("resize", requestFit);
-window.addEventListener("orientationchange", ()=> setTimeout(requestFit, 250));
-if(window.visualViewport) window.visualViewport.addEventListener("resize", requestFit);
-if("ResizeObserver" in window) new ResizeObserver(requestFit).observe(stage);
+window.addEventListener("orientationchange", () => setTimeout(requestFit, 250));
+if (window.visualViewport) window.visualViewport.addEventListener("resize", requestFit);
+if ("ResizeObserver" in window) new ResizeObserver(requestFit).observe(stageEl);
 
 /* ============================================================
    PDF RENDERING + SLICING
    ============================================================ */
 async function renderPage(pdf, pageNum){
   const page = await pdf.getPage(pageNum);
-  const base = page.getViewport({ scale:1 });
-  const scale = (DISPLAY_HEIGHT * RENDER_SCALE) / base.height;
+  const base = page.getViewport({ scale: 1 });
+  let scale = (DISPLAY_HEIGHT * RENDER_SCALE) / base.height;
+  if (base.width * scale > MAX_CANVAS_W) scale = MAX_CANVAS_W / base.width; // phone guard
   const viewport = page.getViewport({ scale });
   const c = document.createElement("canvas");
-  c.width  = viewport.width; c.height = viewport.height;
-  await page.render({ canvasContext:c.getContext("2d"), viewport }).promise;
+  c.width  = Math.round(viewport.width);
+  c.height = Math.round(viewport.height);
+  await page.render({ canvasContext: c.getContext("2d"), viewport }).promise;
   return c;
 }
+
+/* Crop one equal vertical third (0,1,2) from a rendered page into a target canvas. */
 function sliceInto(target, source, index){
   const sliceW = source.width / 3;
-  target.width  = sliceW; target.height = source.height;
+  target.width  = sliceW;
+  target.height = source.height;
   target.getContext("2d").drawImage(
-    source, index*sliceW, 0, sliceW, source.height, 0, 0, sliceW, source.height);
+    source, index * sliceW, 0, sliceW, source.height, 0, 0, sliceW, source.height);
 }
 
 /* ------------------------------------------------------------
    PANEL MAPPING
 
-   OUTSIDE page -> FRONT faces.
-     The COVER_THIRD is placed on the CENTRE panel so it is what you
-     see when the brochure is closed (LingPALS cover). The other two
-     thirds go on the side panels (only glimpsed while folding).
+   EXTERIOR (page 1) -> FRONT faces.
+     COVER_THIRD is placed on the CENTRE panel, so when the brochure is
+     closed the visitor sees only the cover, at full readable size. The
+     remaining two exterior thirds go on the side panels; they are only
+     glimpsed on the "exterior spread" step.
 
-   INSIDE page  -> BACK faces, mapped in REVERSE order because the
-     whole piece spins 180deg when opened, so the inside spread reads
-     left->right correctly and is not mirrored:
-       right  panel back -> inside third 0 (appears on the left)
-       center panel back -> inside third 1
-       left   panel back -> inside third 2 (appears on the right)
+   INTERIOR (page 2) -> BACK faces, mapped in REVERSE order.
+     Reverse faces use rotateY(180deg) and the whole piece turns 180°
+     to reveal the inside. Both flips cancel out, so we must invert the
+     left/right panel order for the interior to read left-to-right and
+     not appear mirrored:
+        right  panel back  <- interior third 0  (ends up on the left)
+        centre panel back  <- interior third 1  (stays centre)
+        left   panel back  <- interior third 2  (ends up on the right)
    ------------------------------------------------------------ */
 async function buildBrochure(pdf){
-  if(pdf.numPages < 2)
+  if (pdf.numPages < 2){
     statusEl.textContent = "⚠ This PDF needs 2 pages (outside + inside).";
+  }
 
   const outside = await renderPage(pdf, Math.min(OUTSIDE_PAGE, pdf.numPages));
   const inside  = pdf.numPages >= 2 ? await renderPage(pdf, INSIDE_PAGE) : outside;
 
+  /* Logical panel dimensions from the rendered exterior page. */
   panelW = (outside.width / 3) / RENDER_SCALE;
   panelH = outside.height / RENDER_SCALE;
   brochure.style.width  = panelW + "px";
   brochure.style.height = panelH + "px";
-  Object.values(panels).forEach(p=>{ p.style.width = panelW+"px"; p.style.height = panelH+"px"; });
+  Object.values(panels).forEach(p => {
+    p.style.width  = panelW + "px";
+    p.style.height = panelH + "px";
+  });
 
-  // OUTSIDE -> front faces (cover third goes to centre)
+  /* EXTERIOR -> front faces (cover third onto centre panel). */
   const others = [0,1,2].filter(i => i !== COVER_THIRD);
   sliceInto(panels.center.querySelector(".front canvas"), outside, COVER_THIRD);
   sliceInto(panels.left  .querySelector(".front canvas"), outside, others[0]);
   sliceInto(panels.right .querySelector(".front canvas"), outside, others[1]);
 
-  // INSIDE -> back faces (reversed)
-  sliceInto(panels.left  .querySelector(".back canvas"), inside, 2);
-  sliceInto(panels.center.querySelector(".back canvas"), inside, 1);
+  /* INTERIOR -> back faces (reversed left/right, see mapping note above). */
   sliceInto(panels.right .querySelector(".back canvas"), inside, 0);
+  sliceInto(panels.center.querySelector(".back canvas"), inside, 1);
+  sliceInto(panels.left  .querySelector(".back canvas"), inside, 2);
 
-  buildHotspots();
-
-  const m = location.hash.match(/stage=(\d)/);
-  goToStage(m ? +m[1] : 0);
-}
-
-function buildHotspots(){
-  document.querySelectorAll(".hotspot").forEach(h=>h.remove());
-  HOTSPOTS.forEach((h)=>{
-    const face = panels[h.panel].querySelector(".back");
-    const btn = document.createElement("button");
-    btn.className = "hotspot";
-    btn.style.left = h.x + "%"; btn.style.top = h.y + "%";
-    btn.setAttribute("aria-expanded","false");
-    btn.setAttribute("aria-label", h.label);
-    btn.innerHTML = `+<span class="tip" role="tooltip">${h.text}</span>`;
-    btn.addEventListener("click",(e)=>{
-      e.stopPropagation();
-      const open = btn.getAttribute("aria-expanded") === "true";
-      document.querySelectorAll(".hotspot").forEach(o=>o.setAttribute("aria-expanded","false"));
-      btn.setAttribute("aria-expanded", String(!open));
-    });
-    face.appendChild(btn);
-  });
+  const m = location.hash.match(/state=(\d)/);
+  goTo(m ? +m[1] : 0);
 }
 
 /* ============================================================
@@ -455,51 +684,136 @@ function buildHotspots(){
    ============================================================ */
 async function loadFromUrl(url){
   try{
-    statusEl.textContent = "Loading LingPALS brochure…";
+    statusEl.textContent = "Loading the LingPALS leaflet…";
     const pdf = await pdfjsLib.getDocument(url).promise;
     await buildBrochure(pdf);
   }catch(err){
-    statusEl.textContent = "Couldn't load assets/brochure.pdf — use “Load another PDF”.";
+    statusEl.textContent = "Couldn’t load assets/brochure.pdf. Use “Preview another PDF” to test locally.";
     console.warn(err);
   }
 }
-document.getElementById("file").addEventListener("change", async (e)=>{
-  const f = e.target.files[0]; if(!f) return;
-  const buf = await f.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data:buf }).promise;
-  await buildBrochure(pdf);
+document.getElementById("file").addEventListener("change", async (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  try{
+    const buf = await f.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+    await buildBrochure(pdf);
+    statusEl.textContent = "Loaded a preview PDF.";
+  }catch(err){
+    statusEl.textContent = "That file could not be read as a PDF.";
+    console.warn(err);
+  }
 });
 
 /* ============================================================
-   CONTROLS + KEYBOARD + CLICK-TO-OPEN
+   RESOURCE CARDS
    ============================================================ */
-document.getElementById("unfoldBtn").addEventListener("click", unfold);
-document.getElementById("foldBtn").addEventListener("click", fold);
-document.getElementById("resetBtn").addEventListener("click", ()=> goToStage(0));
-dots.forEach(d=> d.addEventListener("click", ()=> goToStage(+d.dataset.stage)));
-
-brochure.addEventListener("click", (e)=>{
-  if(e.target.closest(".hotspot")) return;
-  if(stageIndex < STAGES.length - 1) unfold();
-});
-
-stage.addEventListener("keydown",(e)=>{
-  if(["ArrowRight","ArrowUp"," ","Enter"].includes(e.key)){ e.preventDefault(); unfold(); }
-  if(["ArrowLeft","ArrowDown"].includes(e.key)){ e.preventDefault(); fold(); }
-});
-
-/* Optional subtle parallax (secondary, off for reduced motion) */
-if(!reduceMotion){
-  stage.addEventListener("pointermove",(e)=>{
-    const r = stage.getBoundingClientRect();
-    const dx = (e.clientX - r.left)/r.width  - .5;
-    const dy = (e.clientY - r.top )/r.height - .5;
-    const s = STAGES[stageIndex];
-    brochure.style.transform = `rotateX(${s.tilt - dy*4}deg) rotateY(${s.spin + dx*5}deg)`;
+function buildResourceCards(){
+  const wrap = document.getElementById("resourceCards");
+  wrap.innerHTML = "";
+  RESOURCE_CARDS.forEach((card, i) => {
+    const a = document.createElement("a");
+    a.className = "rcard";
+    a.href = card.url;                 // Replace "#" with a real URL before publishing.
+    a.setAttribute("aria-label", card.title + " — " + card.desc);
+    if (card.url === "#"){ a.dataset.placeholder = "true"; }
+    a.innerHTML =
+      `<span class="rcard-symbol" aria-hidden="true">${card.symbol}</span>` +
+      `<span class="rcard-title">${card.title}</span>` +
+      `<span class="rcard-desc">${card.desc}</span>`;
+    wrap.appendChild(a);
   });
-  stage.addEventListener("pointerleave", applyStage);
 }
 
+/* ============================================================
+   PRIMARY CONTROLS + KEYBOARD + TAP-TO-ADVANCE
+   ============================================================ */
+nextBtn.addEventListener("click", next);
+prevBtn.addEventListener("click", prev);
+restartBtn.addEventListener("click", () => goTo(0));
+dots.forEach(d => d.addEventListener("click", () => goTo(+d.dataset.state)));
+
+/* Tapping the brochure advances a step (only when not inspecting). */
+brochure.addEventListener("click", (e) => {
+  if (e.target.closest("a")) return;
+  if (inspectOn) return;               // in inspect mode clicks don't change state
+  if (stateIndex < STATES.length - 1) next();
+});
+
+/* Keyboard: forward on Right/Down/Space/Enter, back on Left/Up.
+   Ignored when focus is inside a resource card or a form field. */
+document.addEventListener("keydown", (e) => {
+  const t = e.target;
+  if (t.closest && t.closest("input, textarea, select")) return;
+  if (t.closest && t.closest(".resource-cards")) return;
+
+  const forward = ["ArrowRight","ArrowDown"," ","Spacebar","Enter"];
+  const back    = ["ArrowLeft","ArrowUp"];
+
+  if (forward.includes(e.key)){
+    // let a focused button/link handle its own Enter/Space activation
+    if ((e.key === " " || e.key === "Spacebar" || e.key === "Enter") &&
+        t.closest && t.closest("button, a")) return;
+    e.preventDefault(); next();
+  } else if (back.includes(e.key)){
+    e.preventDefault(); prev();
+  }
+});
+
+/* ============================================================
+   OPTIONAL 3D ORBIT / INSPECTION (secondary interaction)
+   ============================================================ */
+function setInspect(on){
+  inspectOn = on && !reduceMotion;
+  inspectBtn.setAttribute("aria-pressed", String(inspectOn));
+  resetAngleBtn.classList.toggle("hidden", !inspectOn);
+  /* Only claim touch gestures while inspecting, so page scrolling is
+     never blocked otherwise. */
+  stageEl.style.touchAction = inspectOn ? "none" : "";
+  inspectHint.textContent = inspectOn
+    ? "Inspect mode on: drag to gently tilt the leaflet. Its step is preserved."
+    : "Optional: turn on Inspect in 3D to gently tilt and hold the leaflet.";
+  if (!inspectOn){ orbitX = 0; orbitY = 0; applyBrochureTransform(); } // return to a stable pose
+}
+inspectBtn.addEventListener("click", () => setInspect(!inspectOn));
+resetAngleBtn.addEventListener("click", () => { orbitX = 0; orbitY = 0; applyBrochureTransform(); });
+
+if (reduceMotion){
+  inspectBtn.disabled = true;
+  inspectBtn.title = "3D inspection is disabled while reduced motion is on.";
+}
+
+/* Pointer drag = orbit, but only when inspect mode is explicitly on.
+   X-axis is clamped to a modest range so it feels like holding an object. */
+let dragging = false, startX = 0, startY = 0, baseX = 0, baseY = 0;
+stageEl.addEventListener("pointerdown", (e) => {
+  if (!inspectOn) return;
+  dragging = true;
+  startX = e.clientX; startY = e.clientY;
+  baseX = orbitX; baseY = orbitY;
+  stageEl.setPointerCapture(e.pointerId);
+});
+stageEl.addEventListener("pointermove", (e) => {
+  if (!dragging) return;
+  const dx = e.clientX - startX;
+  const dy = e.clientY - startY;
+  orbitY = clamp(baseY + dx * 0.4, -55, 55);   // gentle horizontal swing
+  orbitX = clamp(baseX - dy * 0.3, -30, 30);   // clamped vertical tilt
+  applyBrochureTransform();
+});
+function endDrag(e){
+  if (!dragging) return;
+  dragging = false;
+  try { stageEl.releasePointerCapture(e.pointerId); } catch(_){}
+}
+stageEl.addEventListener("pointerup", endDrag);
+stageEl.addEventListener("pointercancel", endDrag);
+
+/* ============================================================
+   INIT
+   ============================================================ */
+buildResourceCards();
+applyState();
 loadFromUrl(PDF_URL);
 </script>
 </body>
